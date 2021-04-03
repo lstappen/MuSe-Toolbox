@@ -21,7 +21,9 @@ def gold_standard(args):
     # Alignment
     if args.alignment in ['ctw']:
         args.input_path = align(args)
-        args.std_annos_per_sample, args.std_annos_all_samples, args.pre_smoothing, args.aligned = False, False, 'none', True
+        # set all preprocessing options to False/none to make sure preprocessing is only done once
+        args.std_annos_per_sample, args.std_annos_all_samples, args.pre_smoothing = False, False, 'none'
+        args.aligned = True
     elif args.alignment is not 'none':
         print("Alignment method not implemented. Please choose from ['ctw', 'none'].")
 

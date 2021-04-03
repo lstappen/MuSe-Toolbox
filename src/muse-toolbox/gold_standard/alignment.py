@@ -14,7 +14,7 @@ def align(args):
     data_dir = os.path.join(args.input_path, args.dimension) + '/*.csv'
     ts = args.ts  # e.g., 'timeStamp'
 
-    if args.std_annos_all_videos:  # fit scalers to data
+    if args.std_annos_all_samples:  # fit scalers to data
         mapping = get_annotator_mapping(args.anno_mapping_file, args.annotators)
         std_scalers, minmax_scalers = get_scalers(data_dir, ts, args, mapping)
 
@@ -37,13 +37,14 @@ def align(args):
             df_ts = pd.read_csv(ts_path)
 
         # preprocessing: smoothing + scaling
-        if args.std_annos_all_videos:
+        if args.std_annos_all_samples:
             smoothed_sample, annotators = preprocess_signal(args.pre_smoothing, args.pre_smoothing_window,
-                                                            args.std_annos, args.std_annos_all_videos, df, ts, mapping,
-                                                            std_scalers, minmax_scalers)
+                                                            args.std_annos_per_sample, args.std_annos_all_samples, df,
+                                                            ts, mapping, std_scalers, minmax_scalers)
         else:
             smoothed_sample, annotators = preprocess_signal(args.pre_smoothing, args.pre_smoothing_window,
-                                                            args.std_annos, args.std_annos_all_videos, df, ts)
+                                                            args.std_annos_per_sample, args.std_annos_all_samples, df,
+                                                            ts)
 
         if args.alignment == 'ctw':
             aligned_sequences = compute_CTW_alignment(smoothed_sample, annotators)

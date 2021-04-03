@@ -141,12 +141,11 @@ def parse_args():
     return params
 
 
-if __name__ == "__main__":
-    args = parse_args()
+args = parse_args()
 
-    if args.module == 'gold_standard':
-        gold_standard(args)
-    elif args.module == 'diarisation':
-        diarisation(args)
+if args.module == 'gold_standard':
+    gold_standard(args)
+elif args.module == 'diarisation':
+    diarisation(args)
 
-    print('Done.')
+print('Done.')

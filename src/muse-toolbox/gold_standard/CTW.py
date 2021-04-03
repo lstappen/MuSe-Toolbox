@@ -19,7 +19,7 @@ def compute_CTW_warping_paths(data, factor=1.0):
     if not isinstance(data, np.ndarray) and np.all(len(data) == len(data[0])):
         data = np.stack(data, axis=0)  # shape: [num_seq, seq_len]
 
-    octave.addpath(octave.genpath('gold_standard/ctw'))
+    octave.addpath(octave.genpath('src/muse-toolbox/gold_standard/ctw'))
     octave.eval('pkg load optim')
 
     out = octave.feval('applyctw', data, len(data), factor)
