@@ -29,8 +29,8 @@ for file in listdir(data_path):
             if 'unaligned' not in fusion and 'ctw' in fusion:  # no fusion only aligned annotations
                 continue
             elif 'unaligned' not in fusion and 'ewe' in fusion:
-                print('awe')
-                name = 'awe'
+                print('raaw')
+                name = 'raaw'
             elif 'unaligned' not in fusion and 'mean' in fusion:
                 name = 'ctw+mean'
             else:

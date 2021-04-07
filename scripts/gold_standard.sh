@@ -6,7 +6,7 @@ export PYTHONUNBUFFERED=1
 
 input=examples/raw  # path to input raw annotations
 
-emotion_dim=arousal  # emotion dimention which is to be fused, annotations must be in 'arousal' folder
+emotion_dim=arousal  # emotion dimension which is to be fused, annotations must be in 'arousal' folder
 pre_smooth_filter=savgol  # smooth the individual annotations with a Savitzky-Golay filter
 pre_smoothing_window=5  # the window size of the Savitzky-Golay filter
 post_smoothing_window=15  # smoothing window of the filter used on the fused annotation
@@ -32,7 +32,7 @@ python src/muse-toolbox gold_standard -inp $input -out $output_unaligned --std_a
 
 output_aligned="output/std_all_samples_${pre_smooth_filter}_${pre_smoothing_window}_${post_smoothing_window}_aligned"  # path where the fused annotations are to be saved
 
-# 4. Alignment with CTW and fusion using EWE (AWE)
+# 4. Alignment with CTW and fusion using EWE (RAAW)
 fusion=ewe
 alignment=ctw
 python src/muse-toolbox gold_standard -inp $input -out $output_aligned --std_annos_all_samples --alignment $alignment --fusion $fusion -dim $emotion_dim  --pre_smoothing $pre_smooth_filter --pre_smoothing_window $pre_smoothing_window --post_smoothing_window $post_smoothing_window --annotators $annotators --ts timestamp --plot &>> out.txt
