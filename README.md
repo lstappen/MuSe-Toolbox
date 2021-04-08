@@ -32,11 +32,11 @@ of MuSeFuseBox in your publications. _TODO: citations_
     python3 -m venv muse_virtualenv
     ```
     Activate venv using:
-    - Windows
+    - Linux
     ```bash 
      source muse_virtualenv/bin/activate
     ```
-    - Linux
+    - Windows
     ```bash 
     muse_virtualenv\Scripts\activate.bat
     ```
