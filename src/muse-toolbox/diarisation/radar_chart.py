@@ -1,7 +1,5 @@
-import numpy as np
-import matplotlib.markers as markers
 import matplotlib.pyplot as plt
-import pandas as pd
+import numpy as np
 
 
 class RadarChart:
@@ -10,17 +8,20 @@ class RadarChart:
         RadarChart aka SpiderChart to profile the resulting clusters
     """
 
-    def __init__(self, labels):
+    def __init__(self, labels, add_label_order=True):
         """ Initialize to necessary data for the RadarChar. 
             Main logic: Calculate the angles for the number of labels.
 
         Args:
             labels ([string]): The labels of the RadarChart. 
         """
-        self.fontsize = 12
+        self.fontsize = 18
 
-        self.labels = [f'({i+1}) {label}' for i, label in enumerate(labels)]
+        self.labels = labels
         self.labels = [label.replace('_arousal', '').replace('_valence', '') for label in self.labels]
+        self.labels = [self.abbreviate_label(label) for label in self.labels]
+        if add_label_order:
+            self.labels = [f'({i + 1}) {label}' for i, label in enumerate(self.labels)]
 
         N = len(self.labels)
 
@@ -50,7 +51,7 @@ class RadarChart:
             else:
                 label.set_horizontalalignment('right')
 
-        self.bottom, self.top = self.ax.set_ylim(-1, 2.5)  # (-1, 2.75)
+        self.bottom, self.top = self.ax.set_ylim(-2.5001, 2)  # (-1, 2.75)
 
         # Set position of y-labels (0-100) to be in the middle
         # of the first two axes.
@@ -103,14 +104,60 @@ class RadarChart:
             filename (str): Filename to save the plot as (without extension)
         """
         # Add title.
-        self.ax.set_title(title, y=1.08, fontsize=self.fontsize + 2)
+        if title is not None and not title == '':
+            self.ax.set_title(title, y=1.08, fontsize=self.fontsize)
         # Add a legend as well.
         #self.ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1))
-        self.ax.legend(loc='upper right', bbox_to_anchor=(1.3, 0.83), fontsize=self.fontsize)
+        self.ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.03), fontsize=self.fontsize)
         self.fig.tight_layout()
         if show: 
             plt.show()
         # save the figure
         if export_dir:
-            self.fig.savefig(f"{export_dir}/{filename}.png", format="png")
+            self.fig.savefig(f"{export_dir}/{filename}.pdf", format="pdf")
         plt.close()
+
+    def abbreviate_label(self, label):
+        feature_abbreviations = {
+            'mean': 'mean',
+            'median': 'median',
+            'std': 'std',
+            'percentile_5': 'q_{5}',
+            'percentile_10': 'q_{10}',
+            'percentile_25': 'q_{25}',
+            'percentile_33': 'q_{33}',
+            'percentile_66': 'q_{66}',
+            'percentile_75': 'q_{75}',
+            'percentile_90': 'q_{90}',
+            'percentile_95': 'q_{95}',
+            'abs_energy': 'absEnergy',
+            'abs_sum_of_changes': 'aSoC',
+            'mean_abs_change': 'MACh',
+            'mean_change': 'MCh',
+            'mean_sec_derivative_central': 'MSDC',
+            'number_crossing_0': 'Cr0',
+            'number_peaks': 'peaks',
+            'skewness': 'skewness',
+            'kurtosis': 'kurtosis',
+            'long_strike_below_mean': 'LSBMe',
+            'long_strike_above_mean': 'LSAMe',
+            'count_below_mean': 'CBMe',
+            'first_location_of_maximum': 'FLMax',
+            'first_location_of_minimum': 'FLMin',
+            'last_location_of_maximum': 'LLMax',
+            'last_location_of_minimum': 'LLMin',
+            'percentage_of_reoccurring_datapoints_to_all_datapoints': 'PreDa',
+            'length': 'length',
+            'rel_energy': 'relEnergy',
+            'rel_sum_of_changes': 'relSoC',
+            'rel_number_crossing_0': 'relCr0',
+            'rel_number_peaks': 'relPeaks',
+            'rel_long_strike_below_mean': 'relLSBMe',
+            'rel_long_strike_above_mean': 'relLSAMe',
+            'rel_count_below_mean': 'relCBMe',
+        }
+        if label in feature_abbreviations.keys():
+            return f"${feature_abbreviations[label]}$"
+        else:
+            return label
+

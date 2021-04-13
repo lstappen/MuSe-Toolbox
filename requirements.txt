@@ -1,10 +1,12 @@
+matplotlib=3.2.2
+minisom
+natsort
 numpy
+oct2py
 pandas
 scikit-learn
-oct2py
+scikit-fuzzy
 scipy
 s_dbw
-scikit-fuzzy
-minisom
 tabulate
 tsfresh

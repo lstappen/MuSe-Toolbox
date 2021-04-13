@@ -1,15 +1,16 @@
-import pandas as pd
 import os
 import sys
-from tabulate import tabulate
 from itertools import chain
 
-import diarisation.evaluation as evaluation
-from diarisation.feature_reduction import apply_feature_reduction, univariate_feature_selection
+import pandas as pd
+from tabulate import tabulate
+
 import diarisation.cluster_naming as cluster_naming
+import diarisation.config as config
+import diarisation.evaluation as evaluation
 import diarisation.plots as plots
 import diarisation.utils as ut
-import diarisation.config as config
+from diarisation.feature_reduction import apply_feature_reduction
 
 
 def diarisation(args):
@@ -20,16 +21,16 @@ def diarisation(args):
     setup_export_folder_and_logger(args)
 
     # Feature selection and reduction:
-    segments = ut.load_data(args.emo_dims, args.seg_type, args.standardised)
+    segments = ut.load_data(args.emo_dims, args.seg_type, args.anno_type)
     available_features = list(chain.from_iterable([list(segments_emo.columns) for segments_emo in segments]))
     features = ut.extract_features_cli(args.features, available_features, args.emo_dims)
     data, data_mean, nan_indices, partitions = ut.select_features(features, segments, args.emo_dims)
     data_raw = data.copy()
 
-    if f'length_{args.emo_dims[0]}' in data.columns:
-        data.drop(columns=[f'length_{args.emo_dims[0]}'])
-
     print(f"Data shape: {data.shape}")
+
+    if args.standardised:
+        data = ut.scale_data(data)
 
     # apply tsne, pca or som-based feature selection before
     if args.reduce_separately:
@@ -62,7 +63,7 @@ def diarisation(args):
     labels, fpc = ut.apply_clustering(data, args, partitions)
 
     # Cluster Evaluation
-    cluster_eval = evaluation.Evaluation(data=data_raw, cluster_labels=labels, fpc=fpc, plot=args.plot,
+    cluster_eval = evaluation.Evaluation(data=data, cluster_labels=labels, fpc=fpc, plot=args.plot,
                                          remove_noise=args.remove_noise, export_dir=args.export_dir)
     results = cluster_eval.get_results()
 
@@ -74,11 +75,11 @@ def diarisation(args):
     # naming.plot_attributes()
     print(tabulate(cluster_names, headers=list(cluster_names.columns.values), tablefmt="grid"))
 
-    # apply rule of thumb threshold to only accept reasonable class distributions
+    # apply minimum class threshold to only accept reasonable class distributions
     if args.min_class_thr is not None:
         smallest_class = cluster_names['data_per_cluster'].values.min()
         # smallest class should have at least args.min_class_thr of chance level
-        rule_of_thumb_threshold = args.min_class_thr / args.k
+        rule_of_thumb_threshold = args.min_class_thr / float(results['Number of clusters'].values[0])
         distr_is_ok = smallest_class >= rule_of_thumb_threshold
         print(args.export)
         print(f"Smallest class ({'not ' if not distr_is_ok else ''}OK): {smallest_class}")
@@ -91,16 +92,24 @@ def diarisation(args):
 
     # more cluster analysis TODO: make these optional via args
     labels = pd.DataFrame(labels, columns=["labels"])
-    plots.plot_clusters(data, labels, data.columns[0], data.columns[1], args.export_dir, True)
-    plots.plot_target_correlation(data_raw, labels, args.export_dir, True)
-    #plots.plot_target_correlation(data_raw, data[data.columns[0]], params.export_dir)
-    #plots.plot_most_distinctive_features_per_cluster(data_raw, labels, show=True, export_dir=params.export_dir,
-    #                                                 standardize=True)
-    plots.plot_most_distinctive_features_over_all_clusters(data_raw, labels, args.emo_dims[0], show=True, export_dir=args.export_dir,
-                                                           standardize=False)
+    plots.plot_clusters(data, labels, data.columns[0], data.columns[1], args.export_dir, show=True)
+    plots.plot_target_correlation(data_raw, labels, args.export_dir, show=True)
+    # plots.plot_target_correlation(data_raw, data[data.columns[0]], params.export_dir)
+    '''
+    if args.emo_dims[0] == 'valence':
+        features_to_plot = ['std', 'median', 'percentage_of_reoccurring_datapoints_to_all_datapoints', 'rel_energy',
+                            'rel_sum_of_changes', 'rel_number_peaks', 'rel_count_below_mean', 'rel_long_strike_above_mean']
+    else:
+        features_to_plot = ['std', 'median', 'percentile_90', 'rel_energy', 'rel_sum_of_changes', 'rel_number_peaks',
+                            'rel_long_strike_below_mean', 'rel_long_strike_above_mean']
+    plots.plot_features_over_all_clusters(data_raw, labels, features_to_plot, args.emo_dims[0], show=True,
+                                          export_dir=args.export_dir, standardize=True)
+    '''
+
     plots.plot_most_distinctive_features_over_all_clusters(data_raw, labels, args.emo_dims[0], show=True,
-                                                           export_dir=args.export_dir,
-                                                           standardize=True)
+                                                           export_dir=args.export_dir, standardize=False)
+    plots.plot_most_distinctive_features_over_all_clusters(data_raw, labels, args.emo_dims[0], show=True,
+                                                           export_dir=args.export_dir, standardize=True)
 
     list_features = data_raw.columns.values
     if len(args.emo_dims) == 1:
@@ -108,9 +117,8 @@ def diarisation(args):
             plots.plot_clusters(data_raw, labels, 'labels', feature, args.export_dir)
     elif len(args.emo_dims) == 2:
         # univariate_feature_selection(data_raw, labels, list_features)
-        half_len = int(len(list_features) / 2)
-        for i in range(half_len):
-            plots.plot_clusters(data_raw, labels, list_features[i], list_features[i + half_len], args.export_dir)
+        for i in range(0, len(list_features), 2):
+            plots.plot_clusters(data_raw, labels, list_features[i], list_features[i + 1], args.export_dir)
 
     # Settings and Export
     settings = pd.DataFrame(columns=["Features", "TSNE", "PCA", "Algorithm", "K", "Linkage", "EPS", "min_cluster_size",
@@ -147,37 +155,39 @@ def setup_export_folder_and_logger(args):
         args.export_dir = None
 
 
-def generate_name_from_params(params):
-    name = '+'.join(params.features)
-    if params.seg_type == 'wild':
+def generate_name_from_params(args):
+    name = '+'.join(args.features)
+    if args.seg_type == 'wild':
         name += '-wild'
-    if params.standardised:
+    if args.anno_type == 'ewe':
+        name += '-ewe'
+    if args.standardised:
         name += '-st'
 
-    if params.pca:
-        name += f"_pca-{params.pca}"
-    elif params.tsne:
-        name += f"_tsne-{params.pca}"
-    elif params.som:
+    if args.pca:
+        name += f"_pca-{args.pca}"
+    elif args.tsne:
+        name += f"_tsne-{args.pca}"
+    elif args.som:
         name += "_som"
 
-    if params.kmeans:
+    if args.kmeans:
         name += "_kmeans"
-    elif params.aggl:
+    elif args.aggl:
         name += "_aggl"
-    elif params.gmm:
+    elif args.gmm:
         name += "_gmm"
-    elif params.fuzzyCMeans:
+    elif args.fuzzyCMeans:
         name += "_fuzzyCMeans"
-    elif params.dbscan:
+    elif args.dbscan:
         name += "_dbscan"
 
-    if params.partitions[0] == 'all':
+    if args.partitions[0] == 'all':
         name += '-all'
 
-    name += f"_{params.k if params.k is not None else 'x'}-class"
+    name += f"_{args.k if not args.dbscan else 'x'}-class"
 
-    if len(params.emo_dims) == 1:
-        name += f"_{params.emo_dims[0]}"
+    if len(args.emo_dims) == 1:
+        name += f"_{args.emo_dims[0]}"
 
     return name

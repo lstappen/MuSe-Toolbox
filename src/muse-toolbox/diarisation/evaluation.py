@@ -1,10 +1,9 @@
-import warnings
-
-import pandas as pd
-from s_dbw import S_Dbw
-import sklearn.metrics as metrics
-import numpy as np
 import os
+
+import numpy as np
+import pandas as pd
+import sklearn.metrics as metrics
+from s_dbw import S_Dbw
 
 import diarisation.config as cfg
 from diarisation.utils import concat_data_and_labels

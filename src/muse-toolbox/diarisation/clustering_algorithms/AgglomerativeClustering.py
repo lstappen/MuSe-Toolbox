@@ -1,6 +1,6 @@
-from sklearn.cluster import AgglomerativeClustering
-from scipy.cluster.hierarchy import dendrogram, linkage
 import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.cluster import AgglomerativeClustering
 
 
 def run_agglomerative_clustering(data, n_clusters=None, metric="euclidean", linkage="ward", distance_treshold=None):

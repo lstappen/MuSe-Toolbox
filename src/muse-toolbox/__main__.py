@@ -11,7 +11,7 @@ def parse_args():
     gs_parser = subparsers.add_parser("gold_standard")
     diari_parser = subparsers.add_parser("diarisation")
 
-    ### Alining/Fusing several annotations to one Gold Standard
+    ### Aligning/Fusing several annotations to one Gold Standard
     gs_parser.add_argument('-inp', '--input_path', default="data", type=str,
                            help='specify the input directory')
     gs_parser.add_argument('-out', '--output_path', default="output", type=str,
@@ -104,6 +104,8 @@ def parse_args():
     diari_parser.add_argument('--partitions', nargs='+', default=['train'],
                               help="List of partitions to use for clustering, the rest will be predicted. Use 'all' to"
                                    "perform clustering on the full available data set. Default: ['train']")
+    diari_parser.add_argument("--anno_type", choices=["ewe", "raaw"], default="raaw",
+                              help="Type of annotation fusion that was applied. Default: raaw")
 
     # Select the algorithm:
     algorithm = diari_parser.add_mutually_exclusive_group(required=True)

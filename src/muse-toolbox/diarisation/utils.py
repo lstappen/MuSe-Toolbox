@@ -1,8 +1,10 @@
-import pandas as pd
-import numpy as np
+import itertools as iter
 import os
 import sys
-import itertools as iter
+
+import numpy as np
+import pandas as pd
+from sklearn import preprocessing
 
 import diarisation.config as cfg
 from diarisation.clustering_algorithms import AgglomerativeClustering, FuzzyCMeans, GaussianMixturModels, KMeans, \
@@ -24,21 +26,20 @@ class Logger(object):
 
 
 # Load Data
-def load_data(emo_dims, seg_type, use_standardised=False):
+def load_data(emo_dims, seg_type, anno_type):
     """ Loads the arousal and valence data
 
     Args:
         emo_dims (list): List of emotional dimensions to use (e.g. arousal, valence)
         seg_type (string): Which segments to load (wild or topic)
-        use_standardised (bool): whether to load standardised version ('standardised'-arg from cli)
+        anno_type (string): Annotation fusion technique that was applied (ewe or awe)
 
     Returns:
         list(pd.DataFrame):  list of pandas DataFrames for each emotional dimension
     """
     segments = []
     for emo_dim in emo_dims:
-        filler = "standardised_" if use_standardised else ''
-        segments_file = os.path.join(cfg.DATA_PATH, f"{emo_dim}_{seg_type}_{filler}features.csv")
+        segments_file = os.path.join(cfg.DATA_PATH, f"{emo_dim}_{seg_type}_{anno_type}_features.csv")
         segments.append(pd.read_csv(segments_file, header=0))
     return segments
 
@@ -48,14 +49,25 @@ def select_features(features, segments, emo_dims):
     Returns:
         pd.DataFrame: DataFrame with the selected features for arousal and valence
     """
+    relevant_columns = features + [cfg.PARTITION_KEY]
+    for mean in [f'mean_{emo_dim}' for emo_dim in emo_dims]:
+        if mean not in features:
+            relevant_columns += [mean]
+
     data = pd.concat(segments, sort=False, axis=1)
+    data = data[relevant_columns]
+
     nan_mask = data.isnull().any(axis=1)
     nan_indices = np.where(nan_mask)[0]
     print(f"Length data: {len(data.index)}")
     data = data.dropna()
     print(f"Length after dropna: {len(data.index)}")
     data_mean = data[[f'mean_{emo_dim}' for emo_dim in emo_dims]].copy()
+
     partitions = data[cfg.PARTITION_KEY]
+    if isinstance(partitions, pd.DataFrame):
+        partitions = partitions.iloc[:, 0]
+
     data = data[features]
     return data, data_mean, list(nan_indices), partitions
 
@@ -80,7 +92,7 @@ def extract_features_cli(features_cli, available_features=[], emo_dims=['arousal
 
     features = []
     if 'all' in features_cli:
-        features_to_ignore = [cfg.VIDEO_ID_KEY, cfg.SEGMENT_ID_KEY] + cfg.METADATA_KEYS
+        features_to_ignore = [cfg.VIDEO_ID_KEY, cfg.SEGMENT_ID_KEY, cfg.PARTITION_KEY] + cfg.METADATA_KEYS
         features_to_ignore += ['start', 'end', 'id_arousal', 'id_valence']  # needed for old features
         features += [f for f in available_features if f not in features_to_ignore]
     else:
@@ -95,49 +107,57 @@ def extract_features_cli(features_cli, available_features=[], emo_dims=['arousal
     return features
 
 
-def apply_clustering(data, params, partitions):
+def scale_data(data):
+    x = data.values
+    scaler = preprocessing.StandardScaler()
+    x_scaled = scaler.fit_transform(x)
+    data = pd.DataFrame(x_scaled, index=data.index, columns=data.columns)
+    return data
+
+
+def apply_clustering(data, args, partitions):
     labels = []
     fpc = 0
 
-    if params.partitions[0] == 'all':
+    if args.partitions[0] == 'all':
         data_to_fit = data
         data_to_predict = None
     else:
         partitions.reset_index(drop=True, inplace=True)
         data.reset_index(drop=True, inplace=True)
-        data_to_fit = data.loc[partitions.isin(params.partitions)]
-        data_to_predict = data.loc[~partitions.isin(params.partitions)]
+        data_to_fit = data.loc[partitions.isin(args.partitions)]
+        data_to_predict = data.loc[~partitions.isin(args.partitions)]
 
     # K-means
-    if params.kmeans:
-        km, labels, preds = KMeans.run_kmeans(data_to_fit, data_to_predict, params.k, params.cluster_seed)
+    if args.kmeans:
+        km, labels, preds = KMeans.run_kmeans(data_to_fit, data_to_predict, args.k, args.cluster_seed)
 
     # Fuzzy-C-Means:
-    if params.fuzzyCMeans:
-        labels, preds, fpc = FuzzyCMeans.run_fuzzy_cmeans(data_to_fit, data_to_predict, params.k, params.m,
-                                                          params.cluster_seed)
+    if args.fuzzyCMeans:
+        labels, preds, fpc = FuzzyCMeans.run_fuzzy_cmeans(data_to_fit, data_to_predict, args.k, args.m,
+                                                          args.cluster_seed)
 
     # DBSCAN
-    if params.dbscan:
+    if args.dbscan:
         # TODO cluster partitions
-        labels, _ = Dbscan.run_dbscan(data=data, eps=params.eps, min_samples=params.min_samples)
+        labels, _ = Dbscan.run_dbscan(data=data, eps=args.eps, min_samples=args.min_samples)
 
     # Agglomerative Clustering
-    if params.aggl:
+    if args.aggl:
         # Todo: add a lable to disable the plot
         # TODO cluster partitions
         # AgglomerativeClustering.dendrogram_plot(data)
-        if params.distance_thr is not None:
+        if args.distance_thr is not None:
             _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data, n_clusters=None,
-                                                                             distance_treshold=params.distance_thr)
+                                                                             distance_treshold=args.distance_thr)
         else:
-            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data, n_clusters=params.k,
+            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data, n_clusters=args.k,
                                                                              distance_treshold=None)
     # Gaussian Mixture Model
-    if params.gmm:
-        labels, preds = GaussianMixturModels.run_GMM(data_to_fit, data_to_predict, params.k, params.cluster_seed)
+    if args.gmm:
+        labels, preds = GaussianMixturModels.run_GMM(data_to_fit, data_to_predict, args.k, args.cluster_seed)
 
-    if params.partitions[0] == 'all':
+    if args.partitions[0] == 'all':
         merged_labels = labels
     else:
         # merge labels and preds
@@ -145,7 +165,7 @@ def apply_clustering(data, params, partitions):
         count_label = 0
         count_pred = 0
         for part in partitions.values:
-            if part in params.partitions:
+            if part in args.partitions:
                 merged_labels.append(labels[count_label])
                 count_label += 1
             else:

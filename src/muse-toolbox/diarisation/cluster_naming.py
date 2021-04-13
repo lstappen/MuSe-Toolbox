@@ -1,6 +1,6 @@
+import matplotlib.cm as cm
 import numpy as np
 import pandas as pd
-import matplotlib.cm as cm
 
 import diarisation.radar_chart as radar_chart
 from diarisation.utils import get_cluster_data_points, concat_data_and_labels
@@ -148,11 +148,6 @@ class ClusterNaming:
         q75 = data.quantile(0.75, axis=0)
         q90 = data.quantile(0.90, axis=0)
         q95 = data.quantile(0.95, axis=0)
-
-        if cluster == 0:
-            print(f"Cluster naming - cluster no. {cluster}")
-            print(f"Data columns:\n{data.columns}")
-            print(f"mean:\n{mean}")
 
         data_per_cluster = np.round(((len(data.index) / self.n_rows) * 100), 2)
         attribute_dict = {"cluster": cluster, "data_per_cluster": data_per_cluster}

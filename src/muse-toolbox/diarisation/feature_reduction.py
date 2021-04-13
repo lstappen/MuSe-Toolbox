@@ -1,14 +1,13 @@
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.manifold import TSNE
-import numpy as np
-import matplotlib.pyplot as plt
-
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import LinearSVC
-from sklearn.pipeline import make_pipeline
-from sklearn.feature_selection import SelectKBest, f_classif
 
 import diarisation.som as som
 
@@ -28,8 +27,8 @@ def apply_feature_reduction(data, params):
 
         print(f"SOM seed: {params.som_seed}")
         som_trained = som.run_som(data=data, x=params.neurons, y=params.neurons, sigma=params.sigma, alpha=params.alpha,
-                                  iteration=params.iter, initialization=params.weights, topology=params.topology,
-                                  seed=params.som_seed)
+                          iteration=params.iter, initialization=params.weights, topology=params.topology,
+                          seed=params.som_seed)
         # Som Evaluation
         # the new data are the weights of the neurons
         # data = Som.get_weights(som, neurons, len(data.columns), data.columns)
@@ -51,8 +50,8 @@ def _apply_tsne(data, components=2):
     Returns:
         pd.DataFrame: the reduced dataset
     """
-    # n_iter = 5000
-    # perplexity = 40
+    #n_iter = 5000
+    #perplexity = 40
     reduced_data = TSNE(n_components=components, random_state=301).fit_transform(data)
     reduced_data = pd.DataFrame(reduced_data)
     reduced_data = reduced_data.dropna()
@@ -127,8 +126,8 @@ def univariate_feature_selection(data, labels, feature_names):
     p_values = np.add(selector.pvalues_, 1e-8)
     print(f"Selector pvalues: {p_values}")
     scores = -np.log10(p_values)
-    # print(f"Selector pvalues: {selector.pvalues_}")
-    # scores = -np.log10(selector.pvalues_) / 10
+    #print(f"Selector pvalues: {selector.pvalues_}")
+    #scores = -np.log10(selector.pvalues_) / 10
     print(f"Scores: {scores}")
     print(f"Scores MAX: {scores.max()}")
     scores /= scores.max()

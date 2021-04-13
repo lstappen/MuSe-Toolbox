@@ -1,5 +1,5 @@
-import skfuzzy as fuzz
 import numpy as np
+import skfuzzy as fuzz
 
 
 def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m, seed=1):

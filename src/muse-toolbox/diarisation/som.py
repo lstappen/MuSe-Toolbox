@@ -1,14 +1,13 @@
-from minisom import MiniSom
-import pandas as pd
-import numpy as np
-from tabulate import tabulate
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-from matplotlib.patches import RegularPolygon
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+import numpy as np
+import pandas as pd
 from matplotlib import colorbar
-import pickle
 from matplotlib.lines import Line2D
+from matplotlib.patches import RegularPolygon
+from minisom import MiniSom
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from tabulate import tabulate
 
 
 # todo: Docstrings

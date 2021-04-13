@@ -1,14 +1,15 @@
 import datetime
 import glob
 import os
-import numpy as np
+from pathlib import Path
+from time import time
+
 import natsort
+import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
-from time import time
-from pathlib import Path
 
-import MuSeFuseBox.diarisation.config as cfg
+import config as cfg
 
 
 def prepare_metadata():
@@ -51,12 +52,13 @@ def __prepare_data(emotion_name, segment_type):
     partition_df = pd.read_csv(cfg.PARTITION_PATH)
     partitions = {vid: partition for vid, partition in zip(partition_df['Id'], partition_df['Proposal'])}
 
-    if segment_type == 'topic':
+    if 'topic' in segment_type:
         seg_info_filenames = glob.glob(os.path.join(cfg.SEGMENTS_TOPIC_REFERENCE_PATH, "*.csv"))
         seg_info_filenames = natsort.natsorted(seg_info_filenames)
         video_ids = [int(Path(x).stem) for x in seg_info_filenames]
-        filenames_path = os.path.join(cfg.ANNOTATION_GS_PATH, emotion_name)
-        filenames = [os.path.join(filenames_path, f"{vid}_{emotion_name.upper()[0]}_GS.txt") for vid in video_ids]
+        filenames_path = os.path.join(cfg.ANNOTATION_PATH[segment_type], emotion_name)
+        name_suffix = f'_{emotion_name.upper()[0]}_GS.txt' if 'ewe' in segment_type else '.csv'
+        filenames = [os.path.join(filenames_path, f"{vid}{name_suffix}") for vid in video_ids]
 
         for video_id, filename, seg_info_filename in zip(video_ids, filenames, seg_info_filenames):
             video_df = pd.read_csv(filename, index_col=None)
@@ -70,8 +72,8 @@ def __prepare_data(emotion_name, segment_type):
                 segments.append((int(seg_id), partitions[video_id], segment))
             videos.append((video_id, segments))
 
-    elif segment_type == 'wild':
-        filenames = glob.glob(os.path.join(cfg.ANNOTATION_WILD_PATH, emotion_name, "*.csv"))
+    elif 'wild' in segment_type:
+        filenames = glob.glob(os.path.join(cfg.ANNOTATION_PATH[segment_type], emotion_name, "*.csv"))
         filenames = natsort.natsorted(filenames)
 
         for filename in filenames:
@@ -145,13 +147,14 @@ def normalise_statistics(data, segment_type, emotion_name):
 if __name__ == "__main__":
     t_start = time()
 
-    seg_type = 'topic'  # 'topic' or 'wild'
+    seg_types = ['topic_ewe', 'topic_raaw', 'wild_ewe']  # choices: ['topic_ewe', 'topic_raaw', 'wild_ewe']
+    emo_dims = ['arousal', 'valence']
 
     metadata = prepare_metadata()
-    arousal = calculate_statistics('arousal', seg_type, metadata)
-    valence = calculate_statistics('valence', seg_type, metadata)
 
-    arousal_std = normalise_statistics(arousal, seg_type, 'arousal')
-    valence_std = normalise_statistics(valence, seg_type, 'valence')
+    for seg_type in seg_types:
+        for emo_dim in emo_dims:
+            data = calculate_statistics(emo_dim, seg_type, metadata)
+            # normalise_statistics(data, seg_type, emo_dim)
 
     print(f"Time taken: {round(time() - t_start, 1)} sec")
