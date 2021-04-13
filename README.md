@@ -25,6 +25,7 @@ of MuSeFuseBox in your publications. _TODO: citations_
 * Python 3.7
 * For CTW you need to install Octave 5.2.0 and check that 
     `os.environ['OCTAVE_EXECUTABLE'] == 'C:/Octave/Octave-5.2.0/mingw64/bin/octave-cli.exe'`
+    Find older Octave versions under: https://ftp.gnu.org/gnu/octave/
 
 ## Installing the python package
 * We recommend the usage of a virtual environment for the MuSeFuseBox installation.

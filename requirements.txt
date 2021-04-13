@@ -6,3 +6,5 @@ scipy
 s_dbw
 scikit-fuzzy
 minisom
+tabulate
+tsfresh
