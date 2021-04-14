@@ -19,11 +19,7 @@ DATA_PATH = os.path.join(BASE_PATH, 'diari_data')
 LABEL_BASE_PATH = os.path.join(DATA_PATH, 'label_base_')
 
 # paths for feature extraction
-ANNOTATION_PATH = {
-    'wild_ewe': os.path.join(BASE_PATH, 'c2_muse_sent', 'raw', 'annotations', 'task1', 'label_segments'),
-    'topic_ewe': os.path.join(BASE_PATH, 'c2_muse_sent', 'raw', 'annotations', 'gold_standard'),
-    'topic_raaw': os.path.join(BASE_PATH, 'c2_muse_sent', 'raw', 'annotations', 'gold_standard_RAAW')
-}
+ANNOTATION_PATH = os.path.join(BASE_PATH, 'c2_muse_sent', 'raw', 'annotations', 'gold_standard_RAAW')
 SEGMENTS_TOPIC_REFERENCE_PATH = os.path.join(DATA_PATH, 'label_base_topic')
 METADATA_PATH = os.path.join(DATA_PATH, 'metadata.csv')
 PARTITION_PATH = os.path.join(BASE_PATH, 'metadata', 'partition.csv')
