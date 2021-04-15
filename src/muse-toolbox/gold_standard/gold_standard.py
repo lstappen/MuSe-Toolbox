@@ -24,11 +24,11 @@ def gold_standard(args):
         # set all preprocessing options to False/none to make sure preprocessing is only done once
         args.std_annos_per_sample, args.std_annos_all_samples, args.pre_smoothing = False, False, 'none'
         args.aligned = True
-    elif args.alignment is not 'none':
+    elif args.alignment != 'none':
         print("Alignment method not implemented. Please choose from ['ctw', 'none'].")
 
     # Fusion
     if args.fusion in ['mean', 'dba', 'ewe']:
         fuse(args)
-    elif args.fusion is not 'none':
+    elif args.fusion != 'none':
         print("Fusion method not implemented. Please choose from ['mean', 'dba', 'ewe', 'none'].")

@@ -1,6 +1,7 @@
 import argparse
 
 from diarisation.diarisation import diarisation
+from diarisation.feature_extraction import feature_extraction
 from gold_standard.gold_standard import gold_standard
 
 
@@ -10,6 +11,7 @@ def parse_args():
 
     gs_parser = subparsers.add_parser("gold_standard")
     diari_parser = subparsers.add_parser("diarisation")
+    extraction_parser = subparsers.add_parser("feature_extraction")
 
     ### Aligning/Fusing several annotations to one Gold Standard
     gs_parser.add_argument('-inp', '--input_path', default="data", type=str,
@@ -139,6 +141,19 @@ def parse_args():
     kmeans.add_argument("--distance_thr", type=float, default=None,
                         help="The linkage distance threshold above which, clusters will not be merged.")
 
+    # Extraction of segment features (preparation step for diarisation)
+    extraction_parser.add_argument('-inp', '--input_path', default="data", type=str,
+                                   help='specify the input directory (fused annotations)')
+    extraction_parser.add_argument('-out', '--output_path', default="output", type=str,
+                                   help='specify the output directory')
+    extraction_parser.add_argument('-dim', '--dimension', type=str, default='arousal',
+                                   help='perform feature extraction for the specified emotion dimension '
+                                        '(e.g. arousal, valence)')
+    extraction_parser.add_argument('-seg_info', '--segment_info_path', default="segment_info", type=str,
+                                   help='specify the directory containing segment id information')
+    extraction_parser.add_argument('-partition', '--partition_path', default="partition.csv", type=str,
+                                   help='specify the csv file path containing partition information')
+
     params = parser.parse_args()
     return params
 
@@ -149,5 +164,7 @@ if args.module == 'gold_standard':
     gold_standard(args)
 elif args.module == 'diarisation':
     diarisation(args)
+elif args.module == 'feature_extraction':
+    feature_extraction(args)
 
 print('Done.')
