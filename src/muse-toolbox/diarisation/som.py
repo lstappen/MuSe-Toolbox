@@ -10,8 +10,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tabulate import tabulate
 
 
-# todo: Docstrings
-
 def run_som(data: pd.DataFrame, x, y, sigma, alpha, iteration, initialization, topology,
             neighborhood_function="gaussian",
             activation_distance="euclidean",
@@ -137,94 +135,3 @@ def evaluate_som(som: MiniSom, data: pd.DataFrame):
     # print quantization_error and topographic_error
     print(tabulate(tabular_data=[som.quantization_error(data), som.topographic_error(data)],
                    headers=["quantization_error", "topographic_error"]))
-
-
-# deprecated
-def plot_map(som: MiniSom, data: pd.DataFrame, marker):
-    """ Plot the MiniSom. This assumes that the MiniSom has a hexagonal topology. This plot considers the distance between the neurons.
-
-    Args:
-        som (MiniSom): The MiniSom that should be ploted
-        data (pd.DataFrame): The data associated with the MiniSom
-        marker ([int]): Labels of each data point
-    """
-    fig = plt.figure(figsize=(15, 13))
-    ax = fig.add_subplot(111)
-    ax.set_aspect('equal')
-
-    xx, yy = som.get_euclidean_coordinates()
-    umatrix = som.distance_map()
-    weights = som.get_weights()
-
-    for i in range(weights.shape[0]):
-        for j in range(weights.shape[1]):
-            # conversion since the map is hexagonal
-            wy = yy[(i, j)] * 2 / np.sqrt(3) * 3 / 4
-            hex = RegularPolygon((xx[(i, j)], wy), numVertices=6, radius=.95 / np.sqrt(3),
-                                 facecolor=cm.Blues(umatrix[i, j]), alpha=.4, edgecolor='gray')
-            ax.add_patch(hex)
-
-    xrange = np.arange(weights.shape[0])
-    yrange = np.arange(weights.shape[1])
-    plt.xticks(xrange - .5, xrange)
-    plt.yticks(yrange * 2 / np.sqrt(3) * 3 / 4, yrange)
-    size_x = 1
-    size_y = 2 / np.sqrt(3) * 3 / 4
-    ax.set_xlim(-3 / 2 * size_x, size_x * len(xrange))
-    ax.set_ylim(-size_y, size_y * len(yrange))
-
-    divider = make_axes_locatable(plt.gca())
-    ax_cb = divider.new_horizontal(size="5%", pad=0.05)
-    cb1 = colorbar.ColorbarBase(ax_cb, cmap=cm.Blues, orientation='vertical', alpha=.4)
-    cb1.ax.get_yaxis().labelpad = 16
-    cb1.ax.set_ylabel('distance from neurons in the neighbourhood', rotation=270, fontsize=16)
-    plt.gcf().add_axes(ax_cb)
-    plt.savefig("Som1.svg", format="svg")
-    plt.show()
-
-
-def generate_legend(color, marker):
-    custom_lines = []
-    for m in marker:
-        custom_lines.append(Line2D([0], [0], color=color[m], lw=2, label=marker[m]))
-    return custom_lines
-
-
-# deprecated
-def plot_map_2(som: MiniSom, data: pd.DataFrame, marker):
-    """ Plot the MiniSom. This assumes that the MiniSom has a hexagonal topology. This plot considers the cluster that belongs to a neuron.
-
-    Args:
-        som (MiniSom): The MiniSom that should be ploted
-        data (pd.DataFrame): The data associated with the MiniSom
-        marker ([int]): Labels of each data point
-    """
-    fig = plt.figure(figsize=(15, 13))
-    ax = fig.add_subplot(111)
-    ax.set_aspect('equal')
-
-    weights = som.get_weights()
-    # always use nipy_spectral to have a uniform colorspace
-    color = cm.nipy_spectral(np.linspace(0, 1, len(np.unique(marker))))
-    for index, row in data.iterrows():
-        x = np.array(row)
-        w = som.winner(x)
-        wx, wy = som.convert_map_to_euclidean(w)
-        # conversion since the map is hexagonal
-        wy = wy * 2 / np.sqrt(3) * 3 / 4
-        hex = RegularPolygon((wx, wy), numVertices=6, radius=.95 / np.sqrt(3),
-                             facecolor=color[marker[index]], alpha=.4, edgecolor="gray")
-        ax.add_patch(hex)
-
-    xrange = np.arange(weights.shape[0])
-    yrange = np.arange(weights.shape[1])
-    plt.xticks(xrange - .5, xrange)
-    plt.yticks(yrange * 2 / np.sqrt(3) * 3 / 4, yrange)
-    size_x = 1
-    size_y = 2 / np.sqrt(3) * 3 / 4
-    ax.set_xlim(-3 / 2 * size_x, size_x * len(xrange))
-    ax.set_ylim(-size_y, size_y * len(yrange))
-    unique_marker = np.unique(marker)
-    ax.legend(handles=generate_legend(color, unique_marker), fontsize=14, bbox_to_anchor=(1.08, 1))
-    plt.savefig("Som2.svg", format="svg", bbox_inches='tight')
-    plt.show()

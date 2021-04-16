@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 from itertools import chain
 
@@ -6,7 +7,6 @@ import pandas as pd
 from tabulate import tabulate
 
 import diarisation.cluster_naming as cluster_naming
-import diarisation.config as config
 import diarisation.evaluation as evaluation
 import diarisation.plots as plots
 import diarisation.utils as ut
@@ -14,16 +14,30 @@ from diarisation.feature_reduction import apply_feature_reduction
 
 
 def diarisation(args):
-    if args.export is not None and args.export == 'auto':
-        args.export = generate_name_from_params(args)
 
+    if args.kmeans:
+        args.algorithm = "kmeans"
+    elif args.dbscan:
+        args.algorithm = "dbscan"
+    elif args.aggl:
+        args.algorithm = "aggl"
+    elif args.gmm:
+        args.algorithm = "gmm"
+    elif args.fuzzyCMeans:
+        args.algorithm = "fuzzyCMeans"
+
+    if args.export is not None and args.export == 'auto':
+        args.export = generate_name_from_args(args)
     print(args.export)
+
     setup_export_folder_and_logger(args)
+    print(f"Args: {args}")
 
     # Feature selection and reduction:
-    segments = ut.load_data(args.emo_dims, args.seg_type, args.anno_type)
+    segments = ut.load_data(args.input_path, args.emo_dims)
     available_features = list(chain.from_iterable([list(segments_emo.columns) for segments_emo in segments]))
     features = ut.extract_features_cli(args.features, available_features, args.emo_dims)
+    print(f'Features used: {features}')
     data, data_mean, nan_indices, partitions = ut.select_features(features, segments, args.emo_dims)
     data_raw = data.copy()
 
@@ -45,7 +59,6 @@ def diarisation(args):
             data_emo_dims.append(data_emo_dim)
 
         data = pd.concat(data_emo_dims, axis=1)
-        print(f"Data columns (after feature reduction): {data.columns}")
     else:
         data = apply_feature_reduction(data, args)
         if args.tsne is not None or args.pca is not None:
@@ -55,16 +68,16 @@ def diarisation(args):
         data_raw = data.copy()
 
     # Plot Hist and Box
-    if args.plotHistBox and len(args.emo_dims) == 2:
-        plots.plot_histogram(data_mean[f"mean_{args.emo_dims[1]}"], data_mean[f"mean_{args.emo_dims[0]}"])
-        plots.plot_boxplot(data_mean[f"mean_{args.emo_dims[1]}"], data_mean[f"mean_{args.emo_dims[0]}"])
+    if args.plotHistBox and 'valence' in args.emo_dims and 'arousal' in args.emo_dims:
+        plots.plot_histogram(data_mean[f"mean_valence"], data_mean[f"mean_arousal"])
+        plots.plot_boxplot(data_mean[f"mean_valence"], data_mean[f"mean_arousal"])
 
     # Clustering
     labels, fpc = ut.apply_clustering(data, args, partitions)
 
     # Cluster Evaluation
-    cluster_eval = evaluation.Evaluation(data=data, cluster_labels=labels, fpc=fpc, plot=args.plot,
-                                         remove_noise=args.remove_noise, export_dir=args.export_dir)
+    cluster_eval = evaluation.Evaluation(data=data, cluster_labels=labels, fpc=fpc, remove_noise=args.remove_noise,
+                                         export_dir=args.export_dir)
     results = cluster_eval.get_results()
 
     print(tabulate(results, headers=list(results.columns.values), tablefmt="grid"))
@@ -82,60 +95,64 @@ def diarisation(args):
         rule_of_thumb_threshold = args.min_class_thr / float(results['Number of clusters'].values[0])
         distr_is_ok = smallest_class >= rule_of_thumb_threshold
         print(args.export)
-        print(f"Smallest class ({'not ' if not distr_is_ok else ''}OK): {smallest_class}")
+        print(f"Smallest class ({'not ' if not distr_is_ok else ''}OK): {smallest_class} %")
         if not distr_is_ok:
             print(f"Time to abort...")
+            sys.stdout = sys.__stdout__
+            shutil.rmtree(args.export_dir)
             return
 
-    if args.export_as_labels and args.export_dir is not None:
-        cluster_eval.export_results_as_labels(args.export, nan_indices, args.seg_type)
+    # Plots
+    if 'none' not in args.plot:
+        print("Plotting figures...")
+        print(args.plot)
+    label_df = pd.DataFrame(labels, columns=["labels"])
+    plot_all = 'all' in args.plot
 
-    # more cluster analysis TODO: make these optional via args
-    labels = pd.DataFrame(labels, columns=["labels"])
-    plots.plot_clusters(data, labels, data.columns[0], data.columns[1], args.export_dir, show=True)
-    plots.plot_target_correlation(data_raw, labels, args.export_dir, show=True)
-    # plots.plot_target_correlation(data_raw, data[data.columns[0]], params.export_dir)
-    '''
-    if args.emo_dims[0] == 'valence':
-        features_to_plot = ['std', 'median', 'percentage_of_reoccurring_datapoints_to_all_datapoints', 'rel_energy',
-                            'rel_sum_of_changes', 'rel_number_peaks', 'rel_count_below_mean', 'rel_long_strike_above_mean']
-    else:
-        features_to_plot = ['std', 'median', 'percentile_90', 'rel_energy', 'rel_sum_of_changes', 'rel_number_peaks',
-                            'rel_long_strike_below_mean', 'rel_long_strike_above_mean']
-    plots.plot_features_over_all_clusters(data_raw, labels, features_to_plot, args.emo_dims[0], show=True,
-                                          export_dir=args.export_dir, standardize=True)
-    '''
+    if plot_all or 'corr' in args.plot:
+        plots.plot_target_correlation(data_raw, label_df, args.export_dir, show=False, absolute=False,
+                                      format=args.plot_format)
+    if plot_all or 'corr_abs' in args.plot:
+        plots.plot_target_correlation(data_raw, label_df, args.export_dir, show=False, absolute=True,
+                                      format=args.plot_format)
 
-    plots.plot_most_distinctive_features_over_all_clusters(data_raw, labels, args.emo_dims[0], show=True,
-                                                           export_dir=args.export_dir, standardize=False)
-    plots.plot_most_distinctive_features_over_all_clusters(data_raw, labels, args.emo_dims[0], show=True,
-                                                           export_dir=args.export_dir, standardize=True)
+    if plot_all or 'distinctive_features_single' in args.plot:
+        plots.plot_most_distinctive_features_per_cluster(data_raw, label_df, args.emo_dims, export_dir=args.export_dir,
+                                                         show=False, standardize=False, format=args.plot_format)
+        plots.plot_most_distinctive_features_per_cluster(data_raw, label_df, args.emo_dims, export_dir=args.export_dir,
+                                                         show=False, standardize=False, format=args.plot_format)
 
-    list_features = data_raw.columns.values
-    if len(args.emo_dims) == 1:
-        for feature in list_features:
-            plots.plot_clusters(data_raw, labels, 'labels', feature, args.export_dir)
-    elif len(args.emo_dims) == 2:
-        # univariate_feature_selection(data_raw, labels, list_features)
-        for i in range(0, len(list_features), 2):
-            plots.plot_clusters(data_raw, labels, list_features[i], list_features[i + 1], args.export_dir)
+    if plot_all or 'distinctive_features_combined' in args.plot:
+        plots.plot_most_distinctive_features_over_all_clusters(data_raw, label_df, args.emo_dims, show=False,
+                                                               export_dir=args.export_dir, standardize=False,
+                                                               format=args.plot_format)
+        plots.plot_most_distinctive_features_over_all_clusters(data_raw, label_df, args.emo_dims, show=False,
+                                                               export_dir=args.export_dir, standardize=True,
+                                                               format=args.plot_format)
+
+    if plot_all or 'point_clouds' in args.plot:
+        if args.tsne is not None or args.pca is not None:  # additional plot with first two components
+            plots.plot_clusters(data, label_df, data.columns[0], data.columns[1], args.export_dir, show=False,
+                                format=args.plot_format)
+
+        list_features = data_raw.columns.values
+        if len(args.emo_dims) == 1:
+            for feature in list_features:
+                plots.plot_clusters(data_raw, label_df, 'labels', feature, args.export_dir, format=args.plot_format)
+        elif len(args.emo_dims) == 2:
+            for i in range(0, len(list_features), 2):
+                plots.plot_clusters(data_raw, label_df, list_features[i], list_features[i + 1], args.export_dir,
+                                    format=args.plot_format)
 
     # Settings and Export
+    if args.export_as_labels and args.export_dir is not None:
+        cluster_eval.export_results_as_labels(args.export, nan_indices, args.output_path, args.label_reference_path)
+
     settings = pd.DataFrame(columns=["Features", "TSNE", "PCA", "Algorithm", "K", "Linkage", "EPS", "min_cluster_size",
                                      "min_samples", "distance_thr", "remove_noise", "SOM", "Neurons", "topology"])
-    if args.kmeans:
-        algorithm_name = "Kmeans"
-    elif args.dbscan:
-        algorithm_name = "DBSCAN"
-    elif args.aggl:
-        algorithm_name = "Agglomerative"
-    elif args.gmm:
-        algorithm_name = "GMM"
-    elif args.fuzzyCMeans:
-        algorithm_name = "Fuzzy-C-Means"
 
     settings = settings.append(
-        {"Features": args.features, "TSNE": args.tsne, "PCA": args.pca, "Algorithm": algorithm_name,
+        {"Features": args.features, "TSNE": args.tsne, "PCA": args.pca, "Algorithm": args.algorithm,
          "K": args.k, "Linkage": args.linkage, "EPS": args.eps, "min_samples": args.min_samples,
          "distance_thr": args.distance_thr, "Remove_Noise": args.remove_noise, "SOM": args.som,
          "Neurons": args.neurons, "topology": args.topology}, ignore_index=True)
@@ -146,21 +163,16 @@ def diarisation(args):
 
 def setup_export_folder_and_logger(args):
     if args.export is not None:
-        args.export_dir = os.path.join(config.OUTPUT_FOLDER, args.export)
+        args.export_dir = os.path.join(args.output_path, args.export)
         if not os.path.exists(args.export_dir):
             os.makedirs(args.export_dir)
         sys.stdout = ut.Logger(os.path.join(args.export_dir, 'log.txt'))
-        print(f"Args: {args}")
     else:
         args.export_dir = None
 
 
-def generate_name_from_params(args):
+def generate_name_from_args(args):
     name = '+'.join(args.features)
-    if args.seg_type == 'wild':
-        name += '-wild'
-    if args.anno_type == 'ewe':
-        name += '-ewe'
     if args.standardised:
         name += '-st'
 
@@ -171,21 +183,12 @@ def generate_name_from_params(args):
     elif args.som:
         name += "_som"
 
-    if args.kmeans:
-        name += "_kmeans"
-    elif args.aggl:
-        name += "_aggl"
-    elif args.gmm:
-        name += "_gmm"
-    elif args.fuzzyCMeans:
-        name += "_fuzzyCMeans"
-    elif args.dbscan:
-        name += "_dbscan"
+    name += f"_{args.algorithm}"
 
-    if args.partitions[0] == 'all':
-        name += '-all'
+    name += f"_{'+'.join(args.partitions)}-clustered"
 
-    name += f"_{args.k if not args.dbscan else 'x'}-class"
+    if not args.dbscan:
+        name += f"_{args.k}-class"
 
     if len(args.emo_dims) == 1:
         name += f"_{args.emo_dims[0]}"

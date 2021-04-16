@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
-import diarisation.config as cfg
+import diarisation.feature_configs as cfg
 from diarisation.clustering_algorithms import AgglomerativeClustering, FuzzyCMeans, GaussianMixturModels, KMeans, \
     Dbscan
 
@@ -26,20 +26,19 @@ class Logger(object):
 
 
 # Load Data
-def load_data(emo_dims, seg_type, anno_type):
+def load_data(input_path, emo_dims):
     """ Loads the arousal and valence data
 
     Args:
+        input_path (str): Directory where the segment_features file is stored (from feature extraction)
         emo_dims (list): List of emotional dimensions to use (e.g. arousal, valence)
-        seg_type (string): Which segments to load (wild or topic)
-        anno_type (string): Annotation fusion technique that was applied (ewe or awe)
 
     Returns:
         list(pd.DataFrame):  list of pandas DataFrames for each emotional dimension
     """
     segments = []
     for emo_dim in emo_dims:
-        segments_file = os.path.join(cfg.DATA_PATH, f"{emo_dim}_{seg_type}_{anno_type}_features.csv")
+        segments_file = os.path.join(input_path, f"segment_features_{emo_dim}.csv")
         segments.append(pd.read_csv(segments_file, header=0))
     return segments
 
@@ -59,9 +58,9 @@ def select_features(features, segments, emo_dims):
 
     nan_mask = data.isnull().any(axis=1)
     nan_indices = np.where(nan_mask)[0]
-    print(f"Length data: {len(data.index)}")
+    print(f"Number of segments: {len(data.index)}")
     data = data.dropna()
-    print(f"Length after dropna: {len(data.index)}")
+    print(f"After NANs dropped: {len(data.index)}")
     data_mean = data[[f'mean_{emo_dim}' for emo_dim in emo_dims]].copy()
 
     partitions = data[cfg.PARTITION_KEY]
@@ -72,12 +71,12 @@ def select_features(features, segments, emo_dims):
     return data, data_mean, list(nan_indices), partitions
 
 
-def extract_features_cli(features_cli, available_features=[], emo_dims=['arousal', 'valence']):
+def extract_features_cli(features_cli, available_features, emo_dims):
     """Creates a list of arousal and valence features according to the user input.
 
     Args:
         features_cli (list): The selected features from the cli.
-        available_features (list or list-like): List of available features (both arousal and valence). Defaults to [].
+        available_features (list or list-like): List of available features (both arousal and valence).
         emo_dims (list): List of emotional dimensions to use (e.g. arousal, valence)
 
     Returns:
@@ -92,8 +91,7 @@ def extract_features_cli(features_cli, available_features=[], emo_dims=['arousal
 
     features = []
     if 'all' in features_cli:
-        features_to_ignore = [cfg.VIDEO_ID_KEY, cfg.SEGMENT_ID_KEY, cfg.PARTITION_KEY] + cfg.METADATA_KEYS
-        features_to_ignore += ['start', 'end', 'id_arousal', 'id_valence']  # needed for old features
+        features_to_ignore = [cfg.VIDEO_ID_KEY, cfg.SEGMENT_ID_KEY, cfg.PARTITION_KEY]
         features += [f for f in available_features if f not in features_to_ignore]
     else:
         for feat in features_cli:
@@ -103,7 +101,6 @@ def extract_features_cli(features_cli, available_features=[], emo_dims=['arousal
                 for emo_dim in emo_dims:
                     if feat + f"_{emo_dim}" in available_features:
                         features.append(feat + f"_{emo_dim}")
-    print(f'Features used: {features}')
     return features
 
 
@@ -116,12 +113,17 @@ def scale_data(data):
 
 
 def apply_clustering(data, args, partitions):
+    #
     labels = []
     fpc = 0
 
-    if args.partitions[0] == 'all':
+    if 'all' in args.partitions:
         data_to_fit = data
         data_to_predict = None
+    elif args.dbscan or args.aggl:
+        print(f"{args.algorithm} does not support assigning samples after clustering. Please select 'all' "
+              f"partitions.")
+        return
     else:
         partitions.reset_index(drop=True, inplace=True)
         data.reset_index(drop=True, inplace=True)
@@ -139,25 +141,22 @@ def apply_clustering(data, args, partitions):
 
     # DBSCAN
     if args.dbscan:
-        # TODO cluster partitions
-        labels, _ = Dbscan.run_dbscan(data=data, eps=args.eps, min_samples=args.min_samples)
+        labels, _ = Dbscan.run_dbscan(data=data_to_fit, eps=args.eps, min_samples=args.min_samples)
 
     # Agglomerative Clustering
     if args.aggl:
-        # Todo: add a lable to disable the plot
-        # TODO cluster partitions
         # AgglomerativeClustering.dendrogram_plot(data)
         if args.distance_thr is not None:
-            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data, n_clusters=None,
+            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data_to_fit, n_clusters=None,
                                                                              distance_treshold=args.distance_thr)
         else:
-            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data, n_clusters=args.k,
+            _, labels = AgglomerativeClustering.run_agglomerative_clustering(data=data_to_fit, n_clusters=args.k,
                                                                              distance_treshold=None)
     # Gaussian Mixture Model
     if args.gmm:
         labels, preds = GaussianMixturModels.run_GMM(data_to_fit, data_to_predict, args.k, args.cluster_seed)
 
-    if args.partitions[0] == 'all':
+    if 'all' in args.partitions:
         merged_labels = labels
     else:
         # merge labels and preds

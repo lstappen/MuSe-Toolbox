@@ -12,7 +12,11 @@ def get_colors(n_clusters):
     return cmap[1:]
 
 
-def plot_most_distinctive_features_per_cluster(data, labels, export_dir=None, show=False, standardize=False):
+def plot_most_distinctive_features_per_cluster(data, labels, emo_dim, export_dir=None, show=False, standardize=False,
+                                               format='png'):
+    emos_long = ' + '.join([x.capitalize() for x in emo_dim])
+    emos_short = '+'.join([x[0].upper() for x in emo_dim])
+
     if standardize:
         data = scale_data(data)
 
@@ -29,20 +33,20 @@ def plot_most_distinctive_features_per_cluster(data, labels, export_dir=None, sh
         chart_data_total = features_mean_total[chart_labels].tolist()
         chart.add_to_radar("All data", colors[-1], chart_data_total)
         chart_data_cluster = features_mean_cluster[chart_labels].tolist()
-        chart.add_to_radar(f"Cluster {i}", colors[i], chart_data_cluster)
+        chart.add_to_radar(f"${emos_short}_{i}$", colors[i], chart_data_cluster)
         standardized_str = ' (standardised)' if standardize else ''
-        chart_title = f"Cluster {i}: most distinctive features{standardized_str}"
+        chart_title = f"{emos_long} - cluster {i}: most distinctive features{standardized_str}"
         filename = f"distinctive_features_cluster_{i}{standardized_str}"
-        chart.show(chart_title, show, export_dir, filename)
+        chart.show(chart_title, show, export_dir, filename, format)
 
-        print(f"Cluster {i}")
-        print(chart_labels)
-        print(f"Total: {chart_data_total}")
-        print(f"Cluster: {chart_data_cluster}")
     return
 
 
-def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, export_dir=None, show=False, standardize=False):
+def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, export_dir=None, show=False,
+                                                     standardize=False, format='png'):
+    emos_long = ' + '.join([x.capitalize() for x in emo_dim])
+    emos_short = '+'.join([x[0].upper() for x in emo_dim])
+
     if standardize:
         data = scale_data(data)
 
@@ -74,51 +78,19 @@ def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, expo
     chart.add_to_radar("All data", colors[-1], chart_data_total)
     for i in np.unique(labels):
         chart_data_cluster = features_mean_clusters[i][chart_labels].tolist()
-        chart.add_to_radar(f"${emo_dim[0].upper()}_{i}$", colors[i], chart_data_cluster)
+        chart.add_to_radar(f"${emos_short}_{i}$", colors[i], chart_data_cluster)
 
     standardized_str = ' (standardised)' if standardize else ''
-    chart_title = f"Most distinctive features for {emo_dim}{standardized_str}"
+    chart_title = f"Most distinctive features for {emos_long}{standardized_str}"
     standardized_str = '_standardised' if standardize else ''
     filename = f"distinctive_features_all_clusters{standardized_str}"
-    chart.show(chart_title, show, export_dir, filename)
+    chart.show(chart_title, show, export_dir, filename, format)
     if export_dir is not None:
         df.to_csv(f"{export_dir}/features_per_cluster{standardized_str}.csv")
     return
 
 
-def plot_features_over_all_clusters(data, labels, features_to_plot, emo_dim, export_dir=None, show=False,
-                                    standardize=False):
-    if standardize:
-        data = scale_data(data)
-
-    features_mean_total = data.mean(axis=0)
-    data_labels = concat_data_and_labels(data, labels)
-    colors = get_colors(len(np.unique(labels)))
-    features_mean_clusters = []
-
-    for i in np.unique(labels):
-        cluster_data = get_cluster_data_points(data_labels, i)
-        features_mean_cluster = cluster_data.mean(axis=0)
-        diff = features_mean_cluster - features_mean_total
-        features_mean_clusters.append(features_mean_cluster)
-
-    chart_labels = [f'{feature}_{emo_dim}' for feature in features_to_plot]
-    chart = radar_chart.RadarChart(chart_labels, False)
-    chart_data_total = features_mean_total[chart_labels].tolist()
-    chart.add_to_radar("All", 'black', chart_data_total)
-    for i in np.unique(labels):
-        chart_data_cluster = features_mean_clusters[i][chart_labels].tolist()
-        chart.add_to_radar(f"${emo_dim[0].upper()}_{i}$", colors[i], chart_data_cluster)
-
-    standardized_str = ' (standardised)' if standardize else ''
-    standardized_str = '_standardised' if standardize else ''
-    filename = f"{emo_dim}_handpicked_features{standardized_str}"
-    title = f"MuSe-Sent: clustering features for {emo_dim.capitalize()}"
-    chart.show(title, show, export_dir, filename)
-    return
-
-
-def plot_target_correlation(data, target, export_dir=None, show=False, absolute=True):
+def plot_target_correlation(data, target, export_dir=None, show=False, absolute=True, format='png'):
     if isinstance(target, pd.DataFrame):
         target = target.iloc[:, 0]
     target_name = target.name
@@ -140,11 +112,13 @@ def plot_target_correlation(data, target, export_dir=None, show=False, absolute=
     if show:
         plt.show()
     if export_dir is not None:
-        fig.savefig(f"{export_dir}/correlation_{target_name}_features.pdf", format="pdf")
+        abs_str = '_abs' if absolute else ''
+        fig.savefig(f"{export_dir}/correlation_{target_name}_features{abs_str}.{format}", format=format)
     plt.close()
 
 
-def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valence', export_dir=None, show=False):
+def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valence', export_dir=None, show=False,
+                  format='png'):
     """
     Plot the resulting clusters with regard to specific features.
     """
@@ -161,8 +135,6 @@ def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valenc
     axes.set_xlabel(feature_x)
     axes.set_ylabel(feature_y)
     axes.legend(loc='upper right', bbox_to_anchor=(1.15, 1.0))
-    #axes.set_ylim(-1, 1)
-    #axes.set_xlim(-1, 1)
     plt.tight_layout()
     if show:
         plt.show()
@@ -172,11 +144,11 @@ def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valenc
             fig_name = remove_feature_suffix(feature_y)
         else:
             fig_name = f"{feature_y},{feature_x}"
-        fig.savefig(f"{export_dir}/clustered_data_visualisation({fig_name}).pdf", format="pdf")
+        fig.savefig(f"{export_dir}/clustered_data_visualisation({fig_name}).{format}", format=format)
     plt.close()
 
 
-def plot_histogram(data_valence, data_arousal):
+def plot_histogram(data_valence, data_arousal, format='svg'):
     """Generate a histogram for mean valence and mean arousal.
 
     Args:
@@ -191,10 +163,10 @@ def plot_histogram(data_valence, data_arousal):
     axes[1].set_title('Valence segments mean')
     # fig.suptitle("Histogram segments")
     plt.show()
-    fig.savefig("Histogram_segments.svg", format="svg")
+    fig.savefig(f"histogram_segments.{format}", format=format)
 
 
-def plot_boxplot(data_valence, data_arousal):
+def plot_boxplot(data_valence, data_arousal, format='svg'):
     """Boxplot for mean valence and mean arousal
 
     Args:
@@ -212,4 +184,4 @@ def plot_boxplot(data_valence, data_arousal):
     axes[1].set_title('Valence')
     # fig.suptitle("Box-plot for segments")
     plt.show()
-    fig.savefig("Boxplot_segments.svg", format="svg")
+    fig.savefig(f"boxplot_segments.{format}", format=format)

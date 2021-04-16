@@ -2,7 +2,7 @@ import numpy as np
 import skfuzzy as fuzz
 
 
-def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m, seed=1):
+def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m=2, seed=1):
     """Apply FuzzyCMeans on a dataset. 
     For more see: https://pythonhosted.org/scikit-fuzzy/auto_examples/plot_cmeans.html
 
@@ -10,7 +10,7 @@ def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m, seed=1):
         data_to_fit (pd.DataFrame): The dataset
         data_to_predict (pd.DataFrame): The dataset for prediction
         k (int): The number of clusters
-        m (int): The fuzzifier m.
+        m (int): The fuzzifier m (default: 2)
         seed (int, optional): random seed for initialisation (default: 1)
 
     Returns:
@@ -18,7 +18,8 @@ def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m, seed=1):
     """
     data_to_fit = data_to_fit.to_numpy()
     data_to_fit = data_to_fit.T
-    cntr, u, u0, d, jm, p, fpc = fuzz.cluster.cmeans(data_to_fit, k, 2, error=0.0005, maxiter=10000, init=None, seed=seed)
+    cntr, u, u0, d, jm, p, fpc = fuzz.cluster.cmeans(data_to_fit, k, m, error=0.0005, maxiter=10000, init=None,
+                                                     seed=seed)
     labels = np.argmax(u, axis=0)
 
     if data_to_predict is None:
@@ -26,8 +27,9 @@ def run_fuzzy_cmeans(data_to_fit, data_to_predict, k, m, seed=1):
     else:
         data_to_predict = data_to_predict.to_numpy()
         data_to_predict = data_to_predict.T
-        u, u0, d, jm, p, fpc = fuzz.cluster.cmeans_predict(data_to_predict, cntr, 2, error=0.0005, maxiter=10000,
-                                                                 init=None, seed=seed)
+        u, u0, d, jm, p, fpc_pred = fuzz.cluster.cmeans_predict(data_to_predict, cntr, m, error=0.0005, maxiter=10000,
+                                                                init=None, seed=seed)
         preds = np.argmax(u, axis=0)
-    # TODO merge fpc
+        fpc = (fpc + fpc_pred) / 2.0
+
     return labels, preds, fpc

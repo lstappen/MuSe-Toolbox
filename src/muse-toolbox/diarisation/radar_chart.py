@@ -64,17 +64,6 @@ class RadarChart:
         self.ax.spines['polar'].set_color('#222222')
         self.ax.set_facecolor('#FAFAFA')
 
-        # TODO fix
-        '''
-        ax = self.fig.add_subplot(1, 1, 1)
-        ax.set_xlim(1, 3)
-        ax.set_ylim(1, 3)
-        ax.axis('off')
-        arrow = markers.MarkerStyle(marker=r'$\circlearrowright$')
-        arrow._transform = arrow.get_transform().rotate_deg(90)
-        ax.plot([2.5], [2.5], marker=arrow, ms=50)
-        '''
-
     def add_to_radar(self, label, color, data):
         """ Adds a data point to the RadarChart
 
@@ -94,7 +83,7 @@ class RadarChart:
         if min(data) < self.bottom:
             self.bottom, self.top = self.ax.set_ylim(bottom=min(data) - 0.5)
 
-    def show(self, title, show, export_dir, filename="Radar Chart"):
+    def show(self, title, show, export_dir, filename="Radar Chart", format='png'):
         """Show and save the plot
 
         Args:
@@ -107,14 +96,13 @@ class RadarChart:
         if title is not None and not title == '':
             self.ax.set_title(title, y=1.08, fontsize=self.fontsize)
         # Add a legend as well.
-        #self.ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1))
         self.ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.03), fontsize=self.fontsize)
         self.fig.tight_layout()
         if show: 
             plt.show()
         # save the figure
         if export_dir:
-            self.fig.savefig(f"{export_dir}/{filename}.pdf", format="pdf")
+            self.fig.savefig(f"{export_dir}/{filename}.{format}", format=format)
         plt.close()
 
     def abbreviate_label(self, label):
@@ -130,24 +118,16 @@ class RadarChart:
             'percentile_75': 'q_{75}',
             'percentile_90': 'q_{90}',
             'percentile_95': 'q_{95}',
-            'abs_energy': 'absEnergy',
-            'abs_sum_of_changes': 'aSoC',
             'mean_abs_change': 'MACh',
             'mean_change': 'MCh',
             'mean_sec_derivative_central': 'MSDC',
-            'number_crossing_0': 'Cr0',
-            'number_peaks': 'peaks',
             'skewness': 'skewness',
             'kurtosis': 'kurtosis',
-            'long_strike_below_mean': 'LSBMe',
-            'long_strike_above_mean': 'LSAMe',
-            'count_below_mean': 'CBMe',
             'first_location_of_maximum': 'FLMax',
             'first_location_of_minimum': 'FLMin',
             'last_location_of_maximum': 'LLMax',
             'last_location_of_minimum': 'LLMin',
             'percentage_of_reoccurring_datapoints_to_all_datapoints': 'PreDa',
-            'length': 'length',
             'rel_energy': 'relEnergy',
             'rel_sum_of_changes': 'relSoC',
             'rel_number_crossing_0': 'relCr0',

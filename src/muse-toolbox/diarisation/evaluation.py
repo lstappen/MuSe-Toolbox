@@ -5,7 +5,6 @@ import pandas as pd
 import sklearn.metrics as metrics
 from s_dbw import S_Dbw
 
-import diarisation.config as cfg
 from diarisation.utils import concat_data_and_labels
 
 
@@ -17,7 +16,7 @@ class Evaluation:
         The used measures are: calinski_harabasz_index, silhouette_index, davies_brouldin_index and s_dbw_validity_index
     """
 
-    def __init__(self, data: pd.DataFrame, cluster_labels, fpc, plot=False, remove_noise=False, export_dir=''):
+    def __init__(self, data: pd.DataFrame, cluster_labels, fpc, remove_noise=False, export_dir=''):
         self.data = data
         self.labels = cluster_labels  # labels for S_dbw has to be numpy array
         # self.cluster_labels = cluster_labels
@@ -31,7 +30,6 @@ class Evaluation:
         # self.data_labels = pd.concat([self.data, self.labels], sort=False, axis=1)
         self.data_labels = concat_data_and_labels(self.data, self.cluster_labels)
         self.number_clusters = len(np.unique(self.cluster_labels))
-        self.plot = plot
         self.export_dir = export_dir
         self.save_outputs = export_dir is not None and export_dir != ""
 
@@ -44,7 +42,7 @@ class Evaluation:
 
     def remove_noise(self):
         """Removes the data points that have a label of -1.
-        This label is only produced by DBSCAN or HDBSCAN
+        This label is only produced by DBSCAN
 
         Returns:
             pd.DataFrame, np.array, pd.DataFrame: the cleaned dataFrame, the cleaned labels for s_dbw, 
@@ -106,34 +104,6 @@ class Evaluation:
                            nearest_centr=True, metric='euclidean')
         return self.s_dbw
 
-    '''# Plot the first two entries
-    def show_plot(self, feature_x='', feature_y=''):
-        """
-        Plot the resulting clusters.
-        For the y-axis use the first column corresponding to the mean_arousal, 
-        and for the x-axis use the second column corresponding to the mean_valence.  
-        """
-        colors = cm.nipy_spectral(np.linspace(0, 1, self.number_clusters))
-        fig, axes = plt.subplots(nrows=1, ncols=1)
-        for i in np.unique(self.cluster_labels):
-            cluster_data = cluster_naming.get_cluster_data_points(self.data_labels, i)
-            # axes.scatter(cluster_data["mean_valence"], cluster_data["mean_arousal"], marker='.', s=30, lw=0,
-            # alpha=0.5, color=colors[i], edgecolor='k', label=i)
-            # valence 1 arousal 0
-            axes.scatter(cluster_data.iloc[:, 1], cluster_data.iloc[:, 0], marker='.', s=30, lw=0, alpha=0.5,
-                         color=colors[i], edgecolor='k', label=i)
-        axes.set_title("The visualization of the clustered data.")
-        axes.set_xlabel(self.data_labels.columns.values[1])
-        axes.set_ylabel(self.data_labels.columns.values[0])
-        axes.legend(loc='upper right', bbox_to_anchor=(1.15, 1.0))
-        axes.set_ylim(-1, 1)
-        axes.set_xlim(-1, 1)
-        plt.show()
-        # save the figure
-        if self.save_outputs:
-            fig.savefig(f"{self.export_dir}/clustered_data_visualisation.png", format="png")
-    '''
-
     def get_results(self):
         """
         Gathers the results of the evaluation measures
@@ -143,8 +113,6 @@ class Evaluation:
         """
         if self.save_outputs:
             self.data_labels.to_csv(f"{self.export_dir}/clustering_results.csv")
-        #if self.plot:
-        #    self.show_plot()
 
         self.calinski_harabasz_index()
         self.silhouette_index()
@@ -154,19 +122,21 @@ class Evaluation:
         results = pd.DataFrame(values, columns=["Number of clusters", "CH", "S", "DB", "S_dbw", "FPC"])
         return results
 
-    def export_results_as_labels(self, export, nan_indices, seg_type):
+    def export_results_as_labels(self, export, nan_indices, output_path, seg_info_path):
         """
         Exports labels in the same format as the original labels (one file per video)
 
         Args:
             export (str): name of the label set (export folder will be named after this)
             nan_indices (list): indices of rows in input data that have been dropped because of NaN values
-            seg_type (str): segment type (topic or wild)
+            output_path (str): output directory where the export folder will be stored
+            seg_info_path (str): path to segment info files; used as reference for label files
         """
-        # TODO move function outside of Evaluation
-        src = cfg.LABEL_BASE_PATH + seg_type
 
-        dest = os.path.join(cfg.LABEL_EXPORT_PATH, export)
+        print("Exporting results as labels...")
+        src = seg_info_path
+
+        dest = os.path.join(output_path, export, export)
         if not os.path.exists(dest):
             os.makedirs(dest)
 
@@ -175,9 +145,6 @@ class Evaluation:
 
         # putting nan-values back in the correct place
         segment_labels = self.data_labels['labels'].values
-        print(f"Segment labels shape(without nan): {segment_labels.shape}")
-        print(f"nan-indices: {nan_indices}")
-        # segment_labels_full = np.insert(segment_labels, nan_indices, -1, 0)  # can't fill with np.nan because type is int
         full_length = segment_labels.shape[0] + len(nan_indices)
         segment_labels_full = np.zeros(full_length, dtype=int)
         seg_idx = 0
@@ -195,8 +162,8 @@ class Evaluation:
             end = start + len(df.index)
             # print(f"{f}: Start: {start}, End: {end}")
 
-            df.loc[:, 'class_id'] = segment_labels_full[start:end]
-            df.loc[df['class_id'] == -1, 'class_id'] = pd.NA  # or np.nan
+            df['class_id'] = segment_labels_full[start:end]
+            df.loc[df['class_id'] == -1, 'class_id'] = pd.NA
 
             df.to_csv(os.path.join(dest, f"{f}.csv"), index=False)
             start = end

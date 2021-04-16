@@ -6,7 +6,13 @@ import natsort
 import numpy as np
 import pandas as pd
 
-import diarisation.config as cfg
+import diarisation.feature_configs as cfg
+
+
+def feature_extraction(args):
+    for emo_dim in args.dimensions:
+        videos = prepare_data(emo_dim, args.partition_path, args.segment_info_path, args.input_path)
+        calculate_statistics(videos, emo_dim, args.output_path)
 
 
 def prepare_data(emotion_name, partition_path, segment_info_path, annotation_path):
@@ -57,20 +63,3 @@ def calculate_statistics(videos, emotion_name, output_path):
     data.columns = [f"{col}_{emotion_name}" if col in cfg.FEATURE_FUNCS.keys() else col for col in data.columns]
     data.to_csv(os.path.join(output_path, f'segment_features_{emotion_name}.csv'), index=False)
     return data
-
-
-def feature_extraction(args):
-    videos = prepare_data(args.dimension, args.partition_path, args.segment_info_path, args.input_path)
-    calculate_statistics(videos, args.dimension, args.output_path)
-
-
-if __name__ == "__main__":
-
-    dimension = 'arousal'
-    input_path = '../../../examples/processed'
-    segment_info_path = '../../../examples/metadata/segment_info'
-    partition_path = '../../../examples/metadata/partition.csv'
-    output_path = '../../../output'
-
-    vids = prepare_data(emo_dim, partition_info, segment_info, input)
-    calculate_statistics(vids, emo_dim, output)
