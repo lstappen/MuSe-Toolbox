@@ -90,7 +90,7 @@ def parse_args():
     diari_parser.add_argument("--cluster_seed", type=int, default=301,
                               help="Seed used for any random initialisations of the clustering algorithms")
     diari_parser.add_argument("--min_class_thr", type=float, default=None,
-                              help="Minimum size of smallest class (as percentage of chance level) to be considered "
+                              help="Minimum size of smallest class (as factor of chance level) to be considered "
                                    "valid. Default: None")
 
     reduction = diari_parser.add_mutually_exclusive_group(required=False)

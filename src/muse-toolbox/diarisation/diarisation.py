@@ -92,7 +92,7 @@ def diarisation(args):
     if args.min_class_thr is not None:
         smallest_class = cluster_names['data_per_cluster'].values.min()
         # smallest class should have at least args.min_class_thr of chance level
-        rule_of_thumb_threshold = args.min_class_thr / float(results['Number of clusters'].values[0])
+        rule_of_thumb_threshold = (args.min_class_thr * 100.0) / float(results['Number of clusters'].values[0])
         distr_is_ok = smallest_class >= rule_of_thumb_threshold
         print(args.export)
         print(f"Smallest class ({'not ' if not distr_is_ok else ''}OK): {smallest_class} %")
