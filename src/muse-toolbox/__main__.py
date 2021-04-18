@@ -66,7 +66,7 @@ def parse_args():
                                    "features, or use one of the pre-sets defined in feature_configs.py (e.g. 'set0')")
     diari_parser.add_argument('-std', "--standardised", action="store_true",
                               help="Standardise features before clustering")
-    diari_parser.add_argument('--emo_dims', nargs='+', default=['arousal', 'valence'],
+    diari_parser.add_argument('-dims --emo_dims', nargs='+', default=['arousal', 'valence'],
                               help='List of emotional dimensions to use (e.g. arousal, valence)')
     diari_parser.add_argument('--partitions', nargs='+', default=['all'],
                               help="List of partitions to use for clustering, the rest will be predicted. Use 'all' to"

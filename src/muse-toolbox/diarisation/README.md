@@ -1,70 +1,4 @@
-_MuSeAnnotationBox_ a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
-In a single framework, we unify a wide range of fusion methods, such as Estimator Weighted Evaluator(EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of Rater Aligned Annotation Weighting (RAAW). 
-The latter method, RAAW, aligns the annotations in an translation-invariant way before weighting them based on inter-rater agreement between the raw annotations. 
-TODO: diarisation short description
-
-Please direct any questions or requests to contact.muse2020[@]gmail.com or stappen[@]ieee.org or via PR.
-
-
-# Citing
-If you use MuSeFuseBox or any code from MuSeFuseBox in your research work, you are kindly asked to acknowledge the use 
-of MuSeFuseBox in your publications. _TODO: citations_
-
-> citation
-
-```
-@inproceedings{musefusebox,
-...
-}
-```
-
-# Installation
-
-
-## Dependencies
-
-* Python 3.7
-* For CTW you need to install Octave 5.2.0 and check that 
-    `os.environ['OCTAVE_EXECUTABLE'] == 'C:/Octave/Octave-5.2.0/mingw64/bin/octave-cli.exe'`
-    Find older Octave versions under: https://ftp.gnu.org/gnu/octave/
-
-## Installing the python package
-* We recommend the usage of a virtual environment for the MuSeFuseBox installation.
-    ```bash 
-    python3 -m venv muse_virtualenv
-    ```
-    Activate venv using:
-    - Linux
-    ```bash 
-     source muse_virtualenv/bin/activate
-    ```
-    - Windows
-    ```bash 
-    muse_virtualenv\Scripts\activate.bat
-    ```
-    Deactivate with:
-    ```bash 
-     deactivate
-    ```
-* Once the virtual environment is activated, install the dependencies in requirements.txt with (later update with install using pip) _TODO: pip installation_
-    ```bash 
-    pip -r requirements.txt
-    ```
-
-The Installation is now complete.
-
-# Configuration
-Go through the tutorials for usage examples of the toolkit. _TODO: tutorials/examples_
-
-Run with:
-    ```
-    python main.py [gold_standard, diarisation]
-    ```
-## Commandline Options: Gold Standard Generation
-... _TODO: add cli options_
-## Commandline Options: Diarisation
-
-### Segment-level feature extraction (pre-processing step)
+### Preprocessing for class creation: Extract segment-level features from fused annotations
 
 Example call:
 `python src/muse-toolbox feature_extraction -dim arousal -inp examples/processed -seg_info examples/metadata/segment_info -partition examples/metadata/partition.csv -out output`
@@ -77,7 +11,7 @@ Example call:
 | -seg_info --segment_info_path     | str | Path to directory that contains segment id information | | `segment_info\` | |
 | -partition --partition_path     | str | Path to the csv file that contains partition information  | | `partition.csv` | |
 
-### Diarisation (class creation based on segment-level features)
+### Diarisation: create classes based on segment-level features
 
 Example call:
 `python src/muse-toolbox diarisation -inp "../../output" -out "../../output" --features set_basic --emo_dims arousal -std --export clustering_test --pca 2 --kmeans --k 3 --export_as_labels -label_ref "../../examples/metadata/segment_info" --min_class_thr 25 --plot all --plot_format pdf`
@@ -157,7 +91,3 @@ Example call:
 | --alpha    | float      | The learning rate. | | 0.9 | |
 | --iter    | int      | The number of training iterations. | | 1000 | |
 | --neurons    | int      | The number of output neurons. If none is provided, the optimal number of neurons will be calculated. | | | 100 |
-
-
-
-(c) Chair of Embedded Intelligence for Health Care and Wellbeing, University of Augsburg. Published under GNU General Public license.
