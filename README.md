@@ -1,16 +1,16 @@
-_MuSeAnnotationBox_ a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
+_MuSe-Toolbox_ a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
 In a single framework, we unify a wide range of fusion methods, such as Estimator Weighted Evaluator(EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of Rater Aligned Annotation Weighting (RAAW). 
-The latter method, RAAW, aligns the annotations in an translation-invariant way before weighting them based on inter-rater agreement between the raw annotations. 
-In a second step, this framework offers to extract a range of segment-level features from the fused annotations.
-These features are then used to create discrete emotion classes using unsupervised clustering algorithms, with optional feature selection and reduction steps beforehand.
-In order to obtain a good understanding of the created classes, we offer comprehensive analysis options, including up to five clustering metrics and various visualisations.
+The latter method, RAAW, aligns the annotations in a translation-invariant way before weighting them based on inter-rater agreement between the raw annotations. \
+In addition, the _MuSe-Toolbox_ provides the functionality to run exhaustive searches for meaningful class clusters in the continuous gold standards.
+For this, signal characteristics are extracted, which are then clustered to create cluster classes in an unsupervised fashion.
+For a better understanding of the proposed clusters, the toolbox also offers _expressive profiling_ options to make human interpretation of the cluster characteristics easier, e.g. statistical analysis, and visualisations.
 
 Please direct any questions or requests to contact.muse2020[@]gmail.com or stappen[@]ieee.org or via PR.
 
 
 # Citing
-If you use MuSeFuseBox or any code from MuSeFuseBox in your research work, you are kindly asked to acknowledge the use 
-of MuSeFuseBox in your publications. _TODO: citations_
+If you use MuSe-Toolbox or any code from MuSe-Toolbox in your research work, you are kindly asked to acknowledge the use 
+of MuSe-Toolbox in your publications. _TODO: citations_
 
 > citation
 
@@ -31,7 +31,7 @@ of MuSeFuseBox in your publications. _TODO: citations_
     Find older Octave versions under: https://ftp.gnu.org/gnu/octave/
 
 ## Installing the python package
-* We recommend the usage of a virtual environment for the MuSeFuseBox installation.
+* We recommend the usage of a virtual environment for the MuSe-Toolbox installation.
     ```bash 
     python3 -m venv muse_virtualenv
     ```
@@ -96,6 +96,7 @@ Example call:
 | --partitions    | list(str)      | List of partitions to use for clustering, the rest will be predicted. Use `all` to perform clustering on all data | | `[all]` | `train` |
 | --plot    | list(str)      | Plot different visualisations of the clustering result | `none`, `all`, `point_clouds`, `distinctive_features_single`, `distinctive_features_combined`, `corr`, `corr_abs` | `[all]` | `point_clouds corr_abs` |
 | --plot_format    | str      | Data type to save the plots as | | `png` | `svg` |
+| --plot_no_title    | bool      | If selected, does not add a title above each plot | True or False | False | |
 | --export    | str      | Name of the folder in which the results, settings and plots are saved. For convenience, use `auto` to auto-generate a descriptive name based on clustering settings | | | `kmeans_test` |
 | --export_as_labels    | bool      | Save results in several csv files (mapped to videos) for further use as labels | True or False | False | |
 | -label_ref --label_reference_path     | str | Path to directory that contains segment id information. Will be used as reference when creating labels from results (required if `export_as_labels` is selected) | | `segment_info\` | |

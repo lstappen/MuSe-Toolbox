@@ -28,6 +28,7 @@ Example call:
 | --partitions    | list(str)      | List of partitions to use for clustering, the rest will be predicted. Use `all` to perform clustering on all data | | `[all]` | `train` |
 | --plot    | list(str)      | Plot different visualisations of the clustering result | `none`, `all`, `point_clouds`, `distinctive_features_single`, `distinctive_features_combined`, `corr`, `corr_abs` | `[all]` | `point_clouds corr_abs` |
 | --plot_format    | str      | Data type to save the plots as | | `png` | `svg` |
+| --plot_no_title    | bool      | If selected, does not add a title above each plot | True or False | False | |
 | --export    | str      | Name of the folder in which the results, settings and plots are saved. For convenience, use `auto` to auto-generate a descriptive name based on clustering settings | | | `kmeans_test` |
 | --export_as_labels    | bool      | Save results in several csv files (mapped to videos) for further use as labels | True or False | False | |
 | -label_ref --label_reference_path     | str | Path to directory that contains segment id information. Will be used as reference when creating labels from results (required if `export_as_labels` is selected) | | `segment_info\` | |

@@ -66,7 +66,7 @@ def parse_args():
                                    "features, or use one of the pre-sets defined in feature_configs.py (e.g. 'set0')")
     diari_parser.add_argument('-std', "--standardised", action="store_true",
                               help="Standardise features before clustering")
-    diari_parser.add_argument('-dims --emo_dims', nargs='+', default=['arousal', 'valence'],
+    diari_parser.add_argument('-dims', '--emo_dims', nargs='+', default=['arousal', 'valence'],
                               help='List of emotional dimensions to use (e.g. arousal, valence)')
     diari_parser.add_argument('--partitions', nargs='+', default=['all'],
                               help="List of partitions to use for clustering, the rest will be predicted. Use 'all' to"
@@ -79,6 +79,8 @@ def parse_args():
                                    "corr_abs)")
     diari_parser.add_argument("--plot_format", type=str, default='png',
                               help="Data type to save the plots as (default: png)")
+    diari_parser.add_argument("--plot_no_title", action="store_true",
+                              help="If selected, does not add a title above each plot")
     diari_parser.add_argument("--export", type=str,
                               help="Name of the folder in which the results, settings and plots are saved")
     diari_parser.add_argument("--export_as_labels", action="store_true",

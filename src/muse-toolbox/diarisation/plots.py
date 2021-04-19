@@ -13,7 +13,7 @@ def get_colors(n_clusters):
 
 
 def plot_most_distinctive_features_per_cluster(data, labels, emo_dim, export_dir=None, show=False, standardize=False,
-                                               format='png'):
+                                               format='png', show_title=True):
     emos_long = ' + '.join([x.capitalize() for x in emo_dim])
     emos_short = '+'.join([x[0].upper() for x in emo_dim])
 
@@ -35,7 +35,7 @@ def plot_most_distinctive_features_per_cluster(data, labels, emo_dim, export_dir
         chart_data_cluster = features_mean_cluster[chart_labels].tolist()
         chart.add_to_radar(f"${emos_short}_{i}$", colors[i], chart_data_cluster)
         standardized_str = ' (standardised)' if standardize else ''
-        chart_title = f"{emos_long} - cluster {i}: most distinctive features{standardized_str}"
+        chart_title = f"{emos_long} - cluster {i}: most distinctive features{standardized_str}" if show_title else ''
         filename = f"distinctive_features_cluster_{i}{standardized_str}"
         chart.show(chart_title, show, export_dir, filename, format)
 
@@ -43,7 +43,7 @@ def plot_most_distinctive_features_per_cluster(data, labels, emo_dim, export_dir
 
 
 def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, export_dir=None, show=False,
-                                                     standardize=False, format='png'):
+                                                     standardize=False, format='png', show_title=True):
     emos_long = ' + '.join([x.capitalize() for x in emo_dim])
     emos_short = '+'.join([x[0].upper() for x in emo_dim])
 
@@ -81,7 +81,7 @@ def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, expo
         chart.add_to_radar(f"${emos_short}_{i}$", colors[i], chart_data_cluster)
 
     standardized_str = ' (standardised)' if standardize else ''
-    chart_title = f"Most distinctive features for {emos_long}{standardized_str}"
+    chart_title = f"Most distinctive features for {emos_long}{standardized_str}" if show_title else ''
     standardized_str = '_standardised' if standardize else ''
     filename = f"distinctive_features_all_clusters{standardized_str}"
     chart.show(chart_title, show, export_dir, filename, format)
@@ -90,7 +90,7 @@ def plot_most_distinctive_features_over_all_clusters(data, labels, emo_dim, expo
     return
 
 
-def plot_target_correlation(data, target, export_dir=None, show=False, absolute=True, format='png'):
+def plot_target_correlation(data, target, export_dir=None, show=False, absolute=True, format='png', show_title=True):
     if isinstance(target, pd.DataFrame):
         target = target.iloc[:, 0]
     target_name = target.name
@@ -106,7 +106,8 @@ def plot_target_correlation(data, target, export_dir=None, show=False, absolute=
     w, h = 10, 1 + 0.2 * data.shape[1]
     fig = corr_target.nlargest(data.shape[1]).plot(kind='barh', figsize=(w, h)).get_figure()
     abs_str = 'Absolute ' if absolute else ''
-    plt.title(f'{abs_str}Correlation between {target_name} and all other features')
+    if show_title:
+        plt.title(f'{abs_str}Correlation between {target_name} and all other features')
     plt.tight_layout()
 
     if show:
@@ -118,7 +119,7 @@ def plot_target_correlation(data, target, export_dir=None, show=False, absolute=
 
 
 def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valence', export_dir=None, show=False,
-                  format='png'):
+                  format='png', show_title=True):
     """
     Plot the resulting clusters with regard to specific features.
     """
@@ -131,7 +132,8 @@ def plot_clusters(data, labels, feature_y='mean_arousal', feature_x='mean_valenc
         cluster_data = get_cluster_data_points(data_labels, i, False)
         axes.scatter(cluster_data.loc[:, feature_x], cluster_data.loc[:, feature_y], marker='.', s=30, lw=0, alpha=0.5,
                      color=colors[i], edgecolor='k', label=i)
-    axes.set_title("Visualisation of the clustered data.")
+    if show_title:
+        axes.set_title("Visualisation of the clustered data.")
     axes.set_xlabel(feature_x)
     axes.set_ylabel(feature_y)
     axes.legend(loc='upper right', bbox_to_anchor=(1.15, 1.0))

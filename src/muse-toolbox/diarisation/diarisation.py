@@ -105,44 +105,47 @@ def diarisation(args):
     # Plots
     if 'none' not in args.plot:
         print("Plotting figures...")
-        print(args.plot)
     label_df = pd.DataFrame(labels, columns=["labels"])
     plot_all = 'all' in args.plot
+    args.show_title = not args.plot_no_title
 
     if plot_all or 'corr' in args.plot:
         plots.plot_target_correlation(data_raw, label_df, args.export_dir, show=False, absolute=False,
-                                      format=args.plot_format)
+                                      format=args.plot_format, show_title=args.show_title)
     if plot_all or 'corr_abs' in args.plot:
         plots.plot_target_correlation(data_raw, label_df, args.export_dir, show=False, absolute=True,
-                                      format=args.plot_format)
+                                      format=args.plot_format, show_title=args.show_title)
 
     if plot_all or 'distinctive_features_single' in args.plot:
         plots.plot_most_distinctive_features_per_cluster(data_raw, label_df, args.emo_dims, export_dir=args.export_dir,
-                                                         show=False, standardize=False, format=args.plot_format)
+                                                         show=False, standardize=False, format=args.plot_format,
+                                                         show_title=args.show_title)
         plots.plot_most_distinctive_features_per_cluster(data_raw, label_df, args.emo_dims, export_dir=args.export_dir,
-                                                         show=False, standardize=False, format=args.plot_format)
+                                                         show=False, standardize=False, format=args.plot_format,
+                                                         show_title=args.show_title)
 
     if plot_all or 'distinctive_features_combined' in args.plot:
         plots.plot_most_distinctive_features_over_all_clusters(data_raw, label_df, args.emo_dims, show=False,
                                                                export_dir=args.export_dir, standardize=False,
-                                                               format=args.plot_format)
+                                                               format=args.plot_format, show_title=args.show_title)
         plots.plot_most_distinctive_features_over_all_clusters(data_raw, label_df, args.emo_dims, show=False,
                                                                export_dir=args.export_dir, standardize=True,
-                                                               format=args.plot_format)
+                                                               format=args.plot_format, show_title=args.show_title)
 
     if plot_all or 'point_clouds' in args.plot:
         if args.tsne is not None or args.pca is not None:  # additional plot with first two components
             plots.plot_clusters(data, label_df, data.columns[0], data.columns[1], args.export_dir, show=False,
-                                format=args.plot_format)
+                                format=args.plot_format, show_title=args.show_title)
 
         list_features = data_raw.columns.values
         if len(args.emo_dims) == 1:
             for feature in list_features:
-                plots.plot_clusters(data_raw, label_df, 'labels', feature, args.export_dir, format=args.plot_format)
+                plots.plot_clusters(data_raw, label_df, 'labels', feature, args.export_dir, format=args.plot_format,
+                                    show_title=args.show_title)
         elif len(args.emo_dims) == 2:
             for i in range(0, len(list_features), 2):
                 plots.plot_clusters(data_raw, label_df, list_features[i], list_features[i + 1], args.export_dir,
-                                    format=args.plot_format)
+                                    format=args.plot_format, show_title=args.show_title)
 
     # Settings and Export
     if args.export_as_labels and args.export_dir is not None:
