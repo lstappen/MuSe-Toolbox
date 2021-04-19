@@ -1,7 +1,9 @@
 _MuSeAnnotationBox_ a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
 In a single framework, we unify a wide range of fusion methods, such as Estimator Weighted Evaluator(EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of Rater Aligned Annotation Weighting (RAAW). 
 The latter method, RAAW, aligns the annotations in an translation-invariant way before weighting them based on inter-rater agreement between the raw annotations. 
-TODO: diarisation short description
+In a second step, this framework offers to extract a range of segment-level features from the fused annotations.
+These features are then used to create discrete emotion classes using unsupervised clustering algorithms, with optional feature selection and reduction steps beforehand.
+In order to obtain a good understanding of the created classes, we offer comprehensive analysis options, including up to five clustering metrics and various visualisations.
 
 Please direct any questions or requests to contact.muse2020[@]gmail.com or stappen[@]ieee.org or via PR.
 

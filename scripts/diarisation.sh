@@ -3,9 +3,9 @@
 # Creating segment-level classes with unsupervised clustering based on gold-standard annotations
 
 input=examples/processed  # path to input gold standard annotations
-segment_info=examples/metadata/segment_info
-partition_info=examples/metadata/partition.csv
-output=output/diarisation
+segment_info=examples/metadata/segment_info  # path to segment information for each video (start, end, segment_id)
+partition_info=examples/metadata/partition.csv  # csv file containing partition information for each video (i.e. train, devel, test)
+output=output/diarisation  # base folder where the extracted segment-level features and the clustering output will be stored
 
 emotion_dim=arousal  # emotion dimension to use for clustering
 plot_format=png  # file format to save the plots as
