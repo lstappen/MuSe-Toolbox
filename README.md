@@ -63,7 +63,25 @@ Run with:
     python main.py [gold_standard, diarisation]
     ```
 ## Commandline Options: Gold Standard Generation
-... _TODO: add cli options_
+
+Example call:
+`python src/muse-toolbox gold_standard -inp data/raw_annotations_original/ -out output --std_annos_all_samples --alignment ctw --fusion ewe -dim valence --plot --pre_smoothing savgol --pre_smoothing_window 5 --post_smoothing_window 15`
+
+| Arg               | Type           | Description  | Options | Default | Example |
+| -------------     |:-------------:| -----| ----------| ---- | ---- |
+| -inp --input_path      | str | Path to directory that contains `dimension` folder. In the `dimension` folder lie the csv files (format described below), each containing the annotations for one instance.| | `data\` | |
+| -out --output_path     | str | Path where the generated gold standard annotations are to be saved | | `output\` | |
+| -dim --dimension    | str      | The name of the dimension that is to be aligned| | `arousal` | `valence` |
+| -fuse --fusion   | str | The type of fusion | `mean`, `ewe`, `dba`, or `none` | `none` | |
+| -align --alignment   | str | The type of alignment | `ctw` or `none` | `none` | |
+| --std_annos_per_sample  | bool | Whether to standardize the annotators per data sample | True or False | False | |
+| --std_annos_all_samples  | bool | Whether to standardize the annotators over all data samples | True or False | False | |
+| --pre_smoothing  | str | The type of smoothing that is to be applied in the beginning (Savitzky-Golay or Moving average filter) | `savgol`, `avg`, or `none` | `savgol` | |
+| --pre_smoothing_window  | int | The window size for the pre_smoothing filter (odd number, greater than 2) |  | 5 |  7, 9, 11 |
+| --post_smoothing_window  | int | The window size for the smoothing that is conducted after the fusion (greater than 1) | | 10 | 10, 15, 25 |
+| --plot  | bool | Plot the gold standard annotations | True or False | False | |
+| --anno_mapping_file  | str | A mapping file in json format containing a mapping of annotator ids (only needed if there are several ids per annotator) |  | `none`|  `annotator_id_mapping.json` |
+| --annotators  | nargs | List of annotator ids that are to be included in the gold standard | | | 0 1 2 3 4 (for 5 annotators with ids 0-4)|
 ## Commandline Options: Diarisation
 
 ### Segment-level feature extraction (pre-processing step)
