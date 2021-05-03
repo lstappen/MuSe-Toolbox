@@ -5,55 +5,34 @@ In addition, the _MuSe-Toolbox_ provides the functionality to run exhaustive sea
 For this, signal characteristics are extracted, which are then clustered to create cluster classes in an unsupervised fashion.
 For a better understanding of the proposed clusters, the toolbox also offers _expressive profiling_ options to make human interpretation of the cluster characteristics easier, e.g. statistical analysis, and visualisations.
 
+![alt text](https://github.com/lstappen/MuSe-Toolbox/blob/master/overview.png)
+
 Please direct any questions or requests to contact.muse2020[@]gmail.com or stappen[@]ieee.org or via PR.
 
 
 # Citing
-If you use MuSe-Toolbox or any code from MuSe-Toolbox in your research work, you are kindly asked to acknowledge the use 
-of MuSe-Toolbox in your publications. _TODO: citations_
+If you use MuSe-Toolbox or any code from MuSe-Toolbox in your research work, we would appreaciate if you acknowledge this Toolbox in your publications.
 
 > citation
 
-```
-@inproceedings{musefusebox,
-...
+
+```bibtex
+@article{stappen2021multimodal,
+  title={The Multimodal Sentiment Analysis in Car Reviews (MuSe-CaR) Dataset: Collection, Insights and Improvements},
+  author={Stappen, Lukas and Baird, Alice and Schumann, Lea and Schuller, Bj{\"o}rn},
+  journal={arXiv preprint arXiv:2101.06053},
+  year={2021}
 }
 ```
 
-# Installation
+# Installation (short)
+There are two ways to use the MuSe toolbox. The easiest way is to use our included Docker container. Here we can ensure that the correct versions of all dependencies are installed and work smoothly. The other opition is to install the dependency tools and compile the MuSe-Toolbox directly from source (see below for detailed introduction).
 
 
-## Dependencies
+```
+docker pull musetoolbox/musetoolbox
+```
 
-* Python 3.7
-* For CTW you need to install Octave 5.2.0 and check that 
-    `os.environ['OCTAVE_EXECUTABLE'] == 'C:/Octave/Octave-5.2.0/mingw64/bin/octave-cli.exe'`
-    Find older Octave versions under: https://ftp.gnu.org/gnu/octave/
-
-## Installing the python package
-* We recommend the usage of a virtual environment for the MuSe-Toolbox installation.
-    ```bash 
-    python3 -m venv muse_virtualenv
-    ```
-    Activate venv using:
-    - Linux
-    ```bash 
-     source muse_virtualenv/bin/activate
-    ```
-    - Windows
-    ```bash 
-    muse_virtualenv\Scripts\activate.bat
-    ```
-    Deactivate with:
-    ```bash 
-     deactivate
-    ```
-* Once the virtual environment is activated, install the dependencies in requirements.txt with (later update with install using pip) _TODO: pip installation_
-    ```bash 
-    pip -r requirements.txt
-    ```
-
-The Installation is now complete.
 
 # Configuration
 Go through the tutorials for usage examples of the toolkit. _TODO: tutorials/examples_
@@ -180,5 +159,116 @@ Example call:
 | --neurons    | int      | The number of output neurons. If none is provided, the optimal number of neurons will be calculated. | | | 100 |
 
 
+
+## Installation (long)
+## Docker
+
+### Linux
+
+Quick and easy install script provided by Docker:
+
+```
+curl -sSL https://get.docker.com/ | sh
+```
+
+If you're not willing to run a random shell script, please see the [installation](https://docs.docker.com/engine/installation/linux/) instructions for your distribution.
+
+If you are a complete Docker newbie, you should follow the [series of tutorials](https://docs.docker.com/engine/getstarted/) now.
+
+### macOS
+
+Download and install [Docker Community Edition](https://www.docker.com/community-edition). Or Download and install [Docker Toolbox](https://docs.docker.com/toolbox/overview/). 
+
+### Windows 10
+
+Instructions to install Docker Desktop for Windows can be found [here](https://hub.docker.com/editions/community/docker-ce-desktop-windows). Once insalled, open powershell as administrator
+
+
+## Check Installation
+
+Get the server version:
+
+```
+$ docker version --format '{{.Server.Version}}'
+
+X.X.X
+```
+
+## Pull MuSe-Toolbox
+
+```
+docker pull musetoolbox/musetoolbox
+```
+
+## Check Installation
+
+start up a container:
+
+```
+docker run musetoolbox
+```
+
+That's it, you have a running Docker container. 
+
+
+## Docker Performance Constraints
+
+You can limit CPU, either using a percentage of all CPUs, or by using specific cores.  
+
+For example, you can tell the [`cpu-shares`](https://docs.docker.com/engine/reference/run/#/cpu-share-constraint) setting.  1024 means 100% of the CPU, so if you want the container to take 50% of all CPU cores, you should specify 512.  See <https://goldmann.pl/blog/2014/09/11/resource-management-in-docker/#_cpu> for more:
+
+```
+docker run -it -c 512 musetoolbox
+```
+
+You can also only use some CPU cores using [`cpuset-cpus`](https://docs.docker.com/engine/reference/run/#/cpuset-constraint).  See <https://agileek.github.io/docker/2014/08/06/docker-cpuset/> for details and some nice videos:
+
+```
+docker run -it --cpuset-cpus=0,4,6 musetoolbox
+```
+
+Note that Docker can still **see** all of the CPUs inside the container -- it just isn't using all of them.  See <https://github.com/docker/docker/issues/20770> for more details.
+
+You can also set [memory constraints](https://docs.docker.com/engine/reference/run/#/user-memory-constraints) on Docker:
+
+```
+docker run -it -m 300M ubuntu:18.04 /bin/bash
+```
+
+
+## By-hand
+
+
+### Dependencies
+
+* Python 3.7
+* For CTW you need to install Octave 5.2.0 and check that 
+    `os.environ['OCTAVE_EXECUTABLE'] == 'C:/Octave/Octave-5.2.0/mingw64/bin/octave-cli.exe'`
+    Find older Octave versions under: https://ftp.gnu.org/gnu/octave/
+
+### Installing the python package
+* We recommend the usage of a virtual environment for the MuSe-Toolbox installation.
+    ```bash 
+    python3 -m venv muse_virtualenv
+    ```
+    Activate venv using:
+    - Linux
+    ```bash 
+     source muse_virtualenv/bin/activate
+    ```
+    - Windows
+    ```bash 
+    muse_virtualenv\Scripts\activate.bat
+    ```
+    Deactivate with:
+    ```bash 
+     deactivate
+    ```
+* Once the virtual environment is activated, install the dependencies in requirements.txt with (later update with install using pip) _TODO: pip installation_
+    ```bash 
+    pip -r requirements.txt
+    ```
+
+The Installation is now complete.
 
 (c) Chair of Embedded Intelligence for Health Care and Wellbeing, University of Augsburg. Published under GNU General Public license.
