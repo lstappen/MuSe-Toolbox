@@ -1,6 +1,7 @@
-_MuSe-Toolbox_ a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
-In a single framework, we unify a wide range of fusion methods, such as Estimator Weighted Evaluator(EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of Rater Aligned Annotation Weighting (RAAW). 
-The latter method, RAAW, aligns the annotations in a translation-invariant way before weighting them based on inter-rater agreement between the raw annotations. \
+_MuSe-Toolbox_ is a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
+In a single framework, we unify a wide range of fusion methods, such as the Estimator Weighted Evaluator (EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of the Rater Aligned Annotation Weighting (RAAW). 
+
+The latter method, RAAW, aligns the annotations in a translation-invariant way before weighting the rating based on inter-rater agreement between the raw annotations. \
 In addition, the _MuSe-Toolbox_ provides the functionality to run exhaustive searches for meaningful class clusters in the continuous gold standards.
 For this, signal characteristics are extracted, which are then clustered to create cluster classes in an unsupervised fashion.
 For a better understanding of the proposed clusters, the toolbox also offers _expressive profiling_ options to make human interpretation of the cluster characteristics easier, e.g. statistical analysis, and visualisations.
