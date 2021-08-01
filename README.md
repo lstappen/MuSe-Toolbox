@@ -16,15 +16,33 @@ If you use MuSe-Toolbox or any code from MuSe-Toolbox in your research work, we 
 
 > citation
 
-
+Toolbox:
 ```bibtex
-@article{stappen2021multimodal,
-  title={The Multimodal Sentiment Analysis in Car Reviews (MuSe-CaR) Dataset: Collection, Insights and Improvements},
-  author={Stappen, Lukas and Baird, Alice and Schumann, Lea and Schuller, Bj{\"o}rn},
-  journal={arXiv preprint arXiv:2101.06053},
+@article{stappen2021muse,
+  title={MuSe-Toolbox: The Multimodal Sentiment Analysis Continuous Annotation Fusion and Discrete Class Transformation Toolbox},
+  author={Stappen, Lukas and Schumann, Lea and Sertolli, Benjamin and Baird, Alice and Weigel, Benjamin and Cambria, Erik and Schuller, Bj{\"o}rn W},
+  journal={arXiv preprint arXiv:2107.11757},
   year={2021}
 }
 ```
+
+Dataset:
+```bibtex
+@article{stappen2020dataset,
+	title        = {The Multimodal Sentiment Analysis in Car Reviews (MuSe-CaR) Dataset: Collection, Insights and Improvements},
+	author       = {Lukas Stappen and Alice Baird and Lea Schumann and Björn Schuller},
+	year         = 2021,
+	month        = {06},
+	journal      = {IEEE Transactions on Affective Computing},
+	publisher    = {IEEE Computer Society},
+	address      = {Los Alamitos, CA, USA},
+	number       = {01},
+	pages        = {1--16},
+	doi          = {10.1109/TAFFC.2021.3097002},
+	issn         = {1949-3045},
+}
+```
+
 
 # Installation (short)
 There are two ways to use the MuSe toolbox. The easiest way is to use our included Docker container. Here we can ensure that the correct versions of all dependencies are installed and work smoothly. The other opition is to install the dependency tools and compile the MuSe-Toolbox directly from source (see below for detailed introduction).
