@@ -1,3 +1,5 @@
+![toolboxlogo](https://github.com/lstappen/MuSe-Toolbox/blob/master/logo_large.png)
+
 _MuSe-Toolbox_ is a Python-based open-source toolkit for creating a variety of continuous and discrete emotion gold standards. 
 In a single framework, we unify a wide range of fusion methods, such as the Estimator Weighted Evaluator (EWE), DTW-Barycenter Averaging (DBA), and Generic-Canonical Time Warp-ing (GCTW), as well as providing an implementation of the Rater Aligned Annotation Weighting (RAAW). 
 
@@ -18,11 +20,14 @@ If you use MuSe-Toolbox or any code from MuSe-Toolbox in your research work, we 
 
 Toolbox:
 ```bibtex
-@article{stappen2021muse,
+@inproceedings{stappen2021muse,
   title={MuSe-Toolbox: The Multimodal Sentiment Analysis Continuous Annotation Fusion and Discrete Class Transformation Toolbox},
   author={Stappen, Lukas and Schumann, Lea and Sertolli, Benjamin and Baird, Alice and Weigel, Benjamin and Cambria, Erik and Schuller, Bj{\"o}rn W},
-  journal={arXiv preprint arXiv:2107.11757},
-  year={2021}
+  booktitle = {Proceedings of the 2nd on Multimodal Sentiment Analysis Challenge},
+  pages = {75–82},
+  year={2021},
+  location = {Virtual Event, China},
+  publisher = {ACM}
 }
 ```
 
