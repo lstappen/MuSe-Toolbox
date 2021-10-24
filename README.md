@@ -59,11 +59,11 @@ docker pull musetoolbox/musetoolbox
 
 
 # Configuration
-Go through the tutorials for usage examples of the toolkit. _TODO: tutorials/examples_
+Go through the tutorials for usage examples of the toolkit.
 
 Run with:
     ```
-    python main.py [gold_standard, diarisation]
+    python src/muse-toolbox [gold_standard, diarisation]
     ```
 ## Commandline Options: Gold Standard Generation
 
